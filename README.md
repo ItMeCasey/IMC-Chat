@@ -9,7 +9,7 @@ For the video player you will also want **VLC** (and, for Twitch's own player, n
 
 ## Use it
 1. Install and open IMC-Chat (or, to run it from the source, `cd app && npm install && npm start`).
-2. Press **Connect Twitch**, open the link, type the code. The login works like Stream's (device code): the app never sees your password.
+2. Press **Connect Twitch**: Twitch's approval page opens in your normal browser; check the code matches and approve. The login works like Stream's (device code): the app never sees your password.
 3. Type a channel name (or paste a twitch.tv link) in the box at the top and press **Join**. Each channel is a tab; a dot shows new messages (red = someone said your name).
 
 ## What is in the window
@@ -21,7 +21,7 @@ For the video player you will also want **VLC** (and, for Twitch's own player, n
 - **Connection:** the header shows *Reconnecting* when Twitch's chat connection drops and *App not responding* when the app itself does.
 - **Watch:** hover a tab and press the play icon (or right-click it) to open a **popout**: the stream in Twitch's player with the chat beside it, or the chat alone. Prefer VLC or mpv? *Open in VLC* (right-click a tab, or the button in a popout) uses Streamlink to hand the stream to your player. **Settings > Video player** has a button that installs Streamlink with winget.
 - **Our own player window (VLC):** the tab's play button opens a resizable window sized to the video, with VLC drawing the picture inside it and our own controls floating over the bottom of the video (play/pause, volume, quality, open chat, keep on top, fullscreen). The controls show while the mouse moves over the window and hide after a few seconds. The title strip and the controls follow the chat window's theme and font. Settings > Video player lets you choose this, a chromeless borderless player, or VLC/mpv's own window.
-- **Twitch's own player:** right-click a tab > *Watch in Twitch's player* opens Twitch's real web player in a window of the app, with a browser profile of its own. Log in to Twitch there once (Settings > Twitch's own player, or just connect Twitch from the app, which opens its approval page in the same place) and Turbo or a subscription means no ads. The app never sees your password.
+- **Twitch's own player:** right-click a tab > *Watch in Twitch's player* opens Twitch's real web player in a window of the app, with a browser profile of its own. Log in to Twitch there once (Settings > Twitch's own player) and Turbo or a subscription means no ads. The app never sees your password.
 - **Right-click** a message (copy, reply, open the user, delete/timeout/ban for mods), a tab (popout, player, mute alerts, leave) or any text box (cut, copy, paste). Tabs show a LIVE tag with viewers and game.
 - **Emote picker extras:** *Recent* and favourite (★) tabs; right-click an emote to favourite it. Up arrow in an empty box brings back what you sent; a counter shows the characters left near the 500 limit.
 - **Recent messages (optional, off by default):** Settings > Chat can load the last messages when you join a channel, using the community service recent-messages.robotty.de (the channel name is sent to it).

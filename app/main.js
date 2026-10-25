@@ -76,8 +76,7 @@ ipcMain.handle('twitch:player', (e, login) => {
   const c = String(login || '').toLowerCase(); if (!/^[a-z0-9_]{3,25}$/.test(c)) return { error: 'Unknown channel' };
   twitchWindow({ width: 1100, height: 640, minWidth: 420, minHeight: 260, title: '#' + c + ' - Twitch' }, 'https://player.twitch.tv/?channel=' + c + '&parent=twitch.tv&muted=false'); return { ok: true };
 });
-// with an address (the page that approves IMC-Chat's login code) it opens that page, so connecting the chat and logging in for the player are one login
-ipcMain.handle('twitch:login', (e, target) => { const first = typeof target === 'string' && /^https:\/\//.test(target) && twitchHost(target) ? target : 'https://www.twitch.tv/login'; twitchWindow({ width: 560, height: 800, title: 'Log in to Twitch' }, first); return { ok: true }; });
+ipcMain.handle('twitch:login', () => { twitchWindow({ width: 560, height: 800, title: 'Log in to Twitch' }, 'https://www.twitch.tv/login'); return { ok: true }; });   // only for Twitch's own player: the chat login uses your normal browser
 ipcMain.handle('twitch:status', async () => { try { return { loggedIn: (await twitchSession().cookies.get({ name: 'auth-token' })).length > 0 }; } catch (err) { return { loggedIn: false }; } });
 ipcMain.handle('twitch:logout', async () => { try { await twitchSession().clearStorageData(); return { ok: true }; } catch (err) { return { error: err.message }; } });
 ipcMain.handle('player:watch', async (e, login, opt) => {
