@@ -1,9 +1,9 @@
 # IMC-Chat
 
-A Twitch chat client for Windows, in the same style as [IMC-Stream](https://github.com/Drakma/IMC-Stream): a tray app with a local Node server (no dependencies) and a retro window. **Join any channel**, read and send chat, with tabs, emotes, replies and mention highlights. Free, GPL-3.0.
+A Twitch chat client for Windows, in the same style as [IMC-Stream](https://github.com/ItMeCasey/IMC-Stream): a tray app with a local Node server (no dependencies) and a retro window. **Join any channel**, read and send chat, with tabs, emotes, replies and mention highlights. Free, GPL-3.0.
 
 ## Download
-Get the Windows installer from the **[Releases page](https://github.com/Drakma/IMC-Chat/releases)**: download `IMC-Chat.Setup.<version>.exe` from the newest release and run it. Each release also lists a `SHA256SUMS.txt` so you can check the download. The installer is not code-signed, so Windows may show a warning the first time (*More info* > *Run anyway*).
+Get the Windows installer from the **[Releases page](https://github.com/ItMeCasey/IMC-Chat/releases)**: download `IMC-Chat.Setup.<version>.exe` from the newest release and run it. Each release also lists a `SHA256SUMS.txt` so you can check the download. The installer is not code-signed, so Windows may show a warning the first time (*More info* > *Run anyway*).
 
 For the video player you will also want **VLC** (and, for Twitch's own player, nothing extra). The app can install **Streamlink** for you from Settings.
 
