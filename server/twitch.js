@@ -9,9 +9,10 @@ const path = require('node:path');
 const CHAT_SCOPES = ['user:read:chat', 'user:write:chat'];
 const MOD_SCOPES = ['user:read:moderated_channels', 'moderator:manage:banned_users', 'moderator:manage:chat_messages', 'moderator:manage:chat_settings', 'moderator:read:chat_settings'];
 const EMOTE_SCOPE = 'user:read:emotes';
-const SCOPES = CHAT_SCOPES.concat(MOD_SCOPES, [EMOTE_SCOPE]);
+const FOLLOW_SCOPE = 'user:read:follows', MAX_CHANNELS = 60;   // 5 chat subscriptions per channel, and Twitch allows 300 on one connection
+const SCOPES = CHAT_SCOPES.concat(MOD_SCOPES, [EMOTE_SCOPE, FOLLOW_SCOPE]);
 const NOTICE_COLORS = ['primary', 'blue', 'green', 'orange', 'purple'];
-const DEFAULT_SETTINGS = { font: 'IMC Sans', size: 16, weight: 400, theme: 'forge', layout: 'horizontal', active: '', showTime: true, altRows: false, compact: true, mentionSound: true, mentionVolume: 60, mentionFlash: true, highlightWords: [], mutedUsers: [], mutedWords: [], mutedAlerts: [], recentHistory: false, favEmotes: [], emoteUse: {}, playerPath: '', playerPref: '', playerStyle: 'own', railWidth: 0, ads: 'skip', videoSource: 'vlc' };
+const DEFAULT_SETTINGS = { font: 'IMC Sans', size: 16, weight: 400, theme: 'forge', layout: 'horizontal', active: '', showTime: true, altRows: false, compact: true, mentionSound: true, mentionVolume: 60, mentionFlash: true, highlightWords: [], mutedUsers: [], mutedWords: [], mutedAlerts: [], recentHistory: false, favEmotes: [], emoteUse: {}, playerPath: '', playerPref: '', playerStyle: 'own', railWidth: 0, ads: 'skip', videoSource: 'vlc', followedOnlyLive: true, autoLive: false, liveSound: true };
 const FONTS = ['IMC Sans', 'IMC Serif', 'IMC Dyslexia', 'system'], THEMES = ['forge', 'midnight', 'ember', 'dusk', 'slate', 'moss', 'cream', 'paper', 'sky'];
 
 /** one chat line as the recent-messages service keeps it (IRC), turned into the same message the live chat makes */
@@ -48,7 +49,7 @@ module.exports = function createTwitch(ctx) {
   const granted = () => (tokens && tokens.scopes) || [];
   const isMod = (c) => !!tokens && (c.id === tokens.user_id || mods.has(c.id));
   const status = () => ({ auth, login: tokens ? tokens.login : '', userId: tokens ? tokens.user_id : '', device: device && { code: device.user_code, url: device.verification_uri }, connected: ready,
-    channels: channels.map((c) => Object.assign({}, c, { mod: isMod(c), live: liveMap.get(c.id) || null })), settings, clientId: ctx.clientId, customClient: !!ctx.customClient, needsModScopes: !!tokens && MOD_SCOPES.concat([EMOTE_SCOPE]).some((s) => !granted().includes(s)) });
+    channels: channels.map((c) => Object.assign({}, c, { mod: isMod(c), live: liveMap.get(c.id) || null })), settings, clientId: ctx.clientId, customClient: !!ctx.customClient, needsModScopes: !!tokens && MOD_SCOPES.concat([EMOTE_SCOPE]).some((s) => !granted().includes(s)), needsFollows: !!tokens && !granted().includes(FOLLOW_SCOPE), maxChannels: MAX_CHANNELS });
   const changed = () => emit('status', status());
 
   // ---------------------------------------------------------------- settings
@@ -72,6 +73,7 @@ module.exports = function createTwitch(ctx) {
     if (b.railWidth !== undefined && Number.isFinite(Number(b.railWidth))) { const w = Math.round(Number(b.railWidth)); settings.railWidth = w <= 0 ? 0 : Math.min(520, Math.max(120, w)); }   // the width of the channel list on the left; 0 = automatic
     if (['skip', 'show'].includes(b.ads)) settings.ads = b.ads;
     if (['vlc', 'twitch'].includes(b.videoSource)) settings.videoSource = b.videoSource;
+    for (const k of ['followedOnlyLive', 'autoLive', 'liveSound']) if (typeof b[k] === 'boolean') settings[k] = b[k];
     const turnedOn = typeof b.recentHistory === 'boolean' && b.recentHistory && !settings.recentHistory;
     if (typeof b.recentHistory === 'boolean') settings.recentHistory = b.recentHistory;
     const fav = list(b.favEmotes, 60, 40, (x) => x); if (fav) settings.favEmotes = fav;
@@ -170,25 +172,65 @@ module.exports = function createTwitch(ctx) {
     history.set(login, old.filter((m) => !seen.has(m.id)).concat(have).sort((a, b) => a.ts - b.ts).slice(-300)); emit('backfill', { channel: login });
   }
   // ---------------------------------------------------------------- who is live (public stream data, every two minutes)
+  let prevLive = null; const justJoined = new Set();   // logins that were live at the last check; channels just joined (not announced as "went live")
   async function fillLive() {
-    if (!tokens || !channels.length) return; const next = new Map();
+    if (!tokens) return; const next = new Map(), liveNow = new Map();
     for (let i = 0; i < channels.length; i += 100) {
       const part = channels.slice(i, i + 100), r = await helix('GET', '/streams?first=100&' + part.map((c) => 'user_id=' + c.id).join('&')).catch(() => null); if (!r || !r.ok) return;
-      for (const s of r.json.data || []) next.set(s.user_id, { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140) });
+      for (const s of r.json.data || []) { const info = { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140) }; next.set(s.user_id, info); liveNow.set(s.user_login, Object.assign({ id: s.user_id, name: s.user_name }, info)); }
     }
+    if (granted().includes(FOLLOW_SCOPE)) {   // the channels you follow that are live right now, joined or not
+      let cursor = '';
+      for (let i = 0; i < 10; i++) {
+        const r = await helix('GET', '/streams/followed?user_id=' + tokens.user_id + '&first=100' + (cursor ? '&after=' + cursor : '')).catch(() => null); if (!r || !r.ok) break;
+        for (const s of r.json.data || []) { const info = { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140) }; liveNow.set(s.user_login, Object.assign({ id: s.user_id, name: s.user_name }, info)); if (channels.some((c) => c.id === s.user_id)) next.set(s.user_id, info); }
+        cursor = r.json.pagination && r.json.pagination.cursor; if (!cursor) break;
+      }
+    }
+    if (prevLive) {   // someone new is live: tell the app (a chime), and add followed channels if that is switched on
+      for (const [login, info] of liveNow) {
+        if (prevLive.has(login)) continue; if (justJoined.delete(login)) continue;
+        const joined = channels.some((c) => c.login === login); if (!joined && !settings.autoLive) continue;
+        let added = false; if (!joined) { const r = await addLogins([login]).catch(() => null); added = !!(r && r.added); }
+        emit('wentlive', { login, name: info.name || login, viewers: info.viewers, game: info.game, added });
+      }
+    }
+    prevLive = new Set(liveNow.keys()); justJoined.clear();
+    if (!channels.length && !prevLive.size) return;
     const same = next.size === liveMap.size && Array.from(next).every(([k, v]) => JSON.stringify(liveMap.get(k)) === JSON.stringify(v)); liveMap.clear(); next.forEach((v, k) => liveMap.set(k, v)); if (!same) changed();
   }
   let liveTimer = null; const startLive = () => { fillLive(); clearInterval(liveTimer); liveTimer = setInterval(fillLive, ctx.liveMs || 120000); if (liveTimer.unref) liveTimer.unref(); };
   // ---------------------------------------------------------------- backup: your channels and settings in one file (never the login)
   const exportData = () => ({ app: 'IMC-Chat', version: 1, channels: channels.map((c) => c.login), settings: Object.assign({}, settings, { active: '' }) });
+  /** add channels by name (at most MAX_CHANNELS in all); returns how many were added */
+  async function addLogins(logins) {
+    const have = new Set(channels.map((c) => c.login)), want = Array.from(new Set(logins.map((x) => String(x).toLowerCase()).filter((x) => /^[a-z0-9_]{3,25}$/.test(x) && !have.has(x)))), room = Math.max(0, MAX_CHANNELS - channels.length), take = want.slice(0, room), added = [];
+    for (let i = 0; i < take.length; i += 100) {
+      const part = take.slice(i, i + 100), r = await helix('GET', '/users?' + part.map((x) => 'login=' + x).join('&')); if (!r.ok) throw new Error(r.json.message || 'Twitch refused the channel list');
+      for (const u of r.json.data || []) { const c = { login: u.login, id: u.id, name: u.display_name, image: u.profile_image_url }; channels.push(c); added.push(c); justJoined.add(c.login); }
+    }
+    if (added.length) { write(CH, channels); if (ready) for (const c of added) await subscribeChannel(c); added.forEach((c) => backfill(c.login)); fillLive(); changed(); }
+    return { added: added.length, skipped: want.length - added.length, full: channels.length >= MAX_CHANNELS && want.length > added.length };
+  }
+  /** the channels you follow, live ones first, for the "add followed channels" list */
+  async function followed() {
+    if (!tokens) throw new Error('Not logged in'); if (!granted().includes(FOLLOW_SCOPE)) throw new Error('Reconnect Twitch to allow reading the channels you follow');
+    const all = []; let cursor = '';
+    for (let i = 0; i < 20; i++) {
+      const r = await helix('GET', '/channels/followed?user_id=' + tokens.user_id + '&first=100' + (cursor ? '&after=' + cursor : '')); if (!r.ok) throw new Error(r.json.message || 'Twitch refused the list');
+      for (const f of r.json.data || []) all.push({ id: f.broadcaster_id, login: f.broadcaster_login, name: f.broadcaster_name }); cursor = r.json.pagination && r.json.pagination.cursor; if (!cursor) break;
+    }
+    const live = new Map(); cursor = '';
+    for (let i = 0; i < 10; i++) {
+      const r = await helix('GET', '/streams/followed?user_id=' + tokens.user_id + '&first=100' + (cursor ? '&after=' + cursor : '')).catch(() => null); if (!r || !r.ok) break;
+      for (const s of r.json.data || []) live.set(s.user_login, { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140) }); cursor = r.json.pagination && r.json.pagination.cursor; if (!cursor) break;
+    }
+    const have = new Set(channels.map((c) => c.login));
+    return all.map((f) => Object.assign({}, f, { live: live.get(f.login) || null, added: have.has(f.login) })).sort((a, b) => (b.live ? b.live.viewers + 1 : 0) - (a.live ? a.live.viewers + 1 : 0) || a.name.localeCompare(b.name));
+  }
   async function importData(d) {
     if (!d || d.app !== 'IMC-Chat' || !Array.isArray(d.channels)) throw new Error('That is not an IMC-Chat backup file');
-    const want = Array.from(new Set(d.channels.map((x) => String(x).toLowerCase()).filter((x) => /^[a-z0-9_]{3,25}$/.test(x) && !channels.some((c) => c.login === x)))).slice(0, 60);
-    if (want.length) {
-      const r = await helix('GET', '/users?' + want.map((x) => 'login=' + x).join('&')); if (!r.ok) throw new Error(r.json.message || 'Twitch refused the channel list');
-      for (const u of r.json.data || []) channels.push({ login: u.login, id: u.id, name: u.display_name, image: u.profile_image_url });
-      write(CH, channels); if (ready) for (const c of channels) await subscribeChannel(c); channels.forEach((c) => backfill(c.login)); fillLive();
-    }
+    await addLogins(d.channels);
     if (d.settings && typeof d.settings === 'object') configure(Object.assign({}, d.settings, { active: undefined })); changed(); return status();
   }
 
@@ -215,7 +257,7 @@ module.exports = function createTwitch(ctx) {
     const login = clean(name); if (!/^[a-z0-9_]{3,25}$/.test(login)) throw new Error('That is not a channel name');
     if (channels.some((c) => c.login === login)) return status();
     const r = await helix('GET', '/users?login=' + login); const u = r.json.data && r.json.data[0]; if (!u) throw new Error('No channel called ' + login);
-    channels.push({ login: u.login, id: u.id, name: u.display_name, image: u.profile_image_url }); write(CH, channels); if (ready) await subscribeChannel(channels[channels.length - 1]); backfill(u.login); fillLive(); changed(); return status();
+    channels.push({ login: u.login, id: u.id, name: u.display_name, image: u.profile_image_url }); write(CH, channels); if (ready) await subscribeChannel(channels[channels.length - 1]); justJoined.add(u.login); backfill(u.login); fillLive(); changed(); return status();
   }
   async function leave(name) {
     const login = clean(name), c = channels.find((x) => x.login === login); if (!c) return status();
@@ -312,5 +354,5 @@ module.exports = function createTwitch(ctx) {
     else throw new Error('Unknown action');
     if (!r.ok) throw new Error(r.json.message || 'Twitch refused that'); return { ok: true };
   }
-  return { startLogin, logout, join, leave, move, send, mod, connect: () => connect(), status, configure, badges, emotes, userInfo, loadMods, fillImages, exportData, importData, fillLive, backfill, history: (ch) => (history.get(clean(ch)) || []).filter((m) => !m.gone), onEvent, stop: () => { clearInterval(liveTimer); closeWs(); } };
+  return { startLogin, logout, join, leave, move, send, mod, connect: () => connect(), status, configure, badges, emotes, userInfo, loadMods, fillImages, exportData, importData, fillLive, backfill, addLogins, followed, history: (ch) => (history.get(clean(ch)) || []).filter((m) => !m.gone), onEvent, stop: () => { clearInterval(liveTimer); closeWs(); } };
 };

@@ -34,6 +34,7 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/health') return json(res, 200, { ok: true, version: VERSION, light: twitch.status().connected ? 'green' : 'amber', uptime: Math.round((Date.now() - STARTED) / 1000) });
     if (p === '/api/status') return json(res, 200, twitch.status());
     if (p === '/api/badges') return json(res, 200, await twitch.badges(new URL(req.url, 'http://localhost').searchParams.get('channel')));
+    if (p === '/api/followed') return json(res, 200, await twitch.followed().then((list) => ({ list }), (e) => ({ error: e.message })));
     if (p === '/api/export') { res.writeHead(200, { 'Content-Type': 'application/json', 'Content-Disposition': 'attachment; filename="imc-chat-backup.json"', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(twitch.exportData(), null, 2)); }
     if (p === '/api/emotes') return json(res, 200, await twitch.emotes(new URL(req.url, 'http://localhost').searchParams.get('channel')).catch((e) => ({ error: e.message })));
     if (p === '/api/user') return json(res, 200, await twitch.userInfo(new URL(req.url, 'http://localhost').searchParams.get('id')).catch((e) => ({ error: e.message })));
@@ -46,6 +47,7 @@ const server = http.createServer(async (req, res) => {
         if (p === '/api/logout') { twitch.logout(); return json(res, 200, twitch.status()); }
         if (p === '/api/join') return json(res, 200, await twitch.join(b.channel));
         if (p === '/api/leave') return json(res, 200, await twitch.leave(b.channel));
+        if (p === '/api/addchannels') { const r = await twitch.addLogins(Array.isArray(b.logins) ? b.logins.slice(0, 200) : []); return json(res, 200, Object.assign({ status: twitch.status() }, r)); }
         if (p === '/api/import') return json(res, 200, await twitch.importData(b));
         if (p === '/api/play') return json(res, 200, await player.play(b.channel, twitch.status().settings.playerPath, { pref: twitch.status().settings.playerPref, style: twitch.status().settings.playerStyle }));
         if (p === '/api/streamlink') return json(res, 200, await player.install(b.what));

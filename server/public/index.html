@@ -86,6 +86,11 @@
   #emo > input { margin: 8px 8px 0; } #emoTabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; border-bottom: 1px solid var(--line); } #emoTabs span { padding: 3px 9px; font-size: .72em; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; background: var(--panel2); border: 1px solid var(--line); } #emoTabs span.on { background: var(--accent); color: var(--on); border-color: var(--accent); }
   #emoGrid { flex: 1; overflow-y: auto; padding: 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; align-content: start; } #emoGrid img { width: 36px; height: 36px; object-fit: contain; cursor: pointer; padding: 2px; } #emoGrid img:hover { background: var(--hover); outline: 1px solid var(--accent); }
   #emoNote { padding: 6px 10px; font-size: .72em; color: var(--muted); border-top: 1px solid var(--line); } #emoGrid .none { grid-column: 1 / -1; color: var(--muted); font-size: .85em; padding: 20px; text-align: center; }
+  #fol { position: fixed; inset: 0; background: #0009; display: none; z-index: 65; } #fol .box { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(580px, 94vw); height: min(660px, 90vh); display: flex; flex-direction: column; background: var(--panel); border: 2px solid var(--accent); box-shadow: 0 16px 50px #000c; }
+  #fol .top { flex: none; display: flex; align-items: center; height: 40px; padding-left: 16px; background: var(--panel2); border-bottom: 2px solid var(--accent); } #fol h2 { font-size: .9em; letter-spacing: 5px; flex: 1; font-weight: 800; } #fol .x { width: 46px; height: 100%; border: 0; background: transparent; color: var(--text); font-size: 1.1em; cursor: pointer; padding: 0; } #fol .x:hover { background: var(--danger); color: #fff; }
+  #fol .fbar { flex: none; display: flex; gap: 14px; align-items: center; padding: 12px 16px 6px; } #fol .fbar input:not([type]) { flex: 1; } #fol .fbar2 { flex: none; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 6px 16px 10px; border-bottom: 1px solid var(--line); } #fol .fbar2 .muted { margin-left: auto; }
+  #folList { flex: 1; overflow-y: auto; padding: 6px 8px; } .frow { display: flex; align-items: center; gap: 10px; padding: 7px 10px; cursor: pointer; } .frow:hover { background: var(--hover); } .frow input { width: 18px; height: 18px; accent-color: var(--accent); padding: 0; flex: none; } .frow .fn { font-weight: 700; } .frow .fl { margin-left: auto; font-size: .78em; color: var(--muted); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; } .frow .fl b { color: var(--danger); letter-spacing: 1px; } .frow.dis { opacity: .55; cursor: default; }
+  #fol .ffoot { flex: none; padding: 12px 16px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
   /* settings */
   #settings { position: fixed; inset: 0; background: #0009; display: none; z-index: 60; }
   #settings .box { position: absolute; display: flex; flex-direction: column; background: var(--panel); border: 2px solid var(--accent); box-shadow: 0 16px 50px #000c; width: 760px; height: 82vh; min-width: 420px; min-height: 280px; max-width: 98vw; max-height: 98vh; resize: both; overflow: hidden; }
@@ -101,7 +106,7 @@
 <body>
 <header><h1>IMC-CHAT</h1><span id="dash">-</span><span id="who"></span><span id="conn"></span><span class="sp"></span><span id="ver"></span><button class="sysbtn" id="gear" title="Settings" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 15.500a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7z"/><path d="M19.400 13a7.600 7.600 0 0 0 0-2l2-1.600-2-3.400-2.400.9a7.500 7.500 0 0 0-1.700-1L15 3.300h-4l-.3 2.600a7.500 7.500 0 0 0-1.700 1l-2.400-.9-2 3.400L6.600 11a7.600 7.600 0 0 0 0 2l-2 1.600 2 3.400 2.400-.9a7.500 7.500 0 0 0 1.700 1l.3 2.600h4l.3-2.600a7.500 7.500 0 0 0 1.700-1l2.400.9 2-3.400z"/></svg></button></header>
 <div id="app">
-  <div id="banner"><span>Reconnect Twitch once to turn on the moderator tools (they need new permissions).</span><button id="reconnect">Reconnect</button></div>
+  <div id="banner"><span>Reconnect Twitch once to turn on new features (moderator tools, your own emotes, followed channels): they need new permissions.</span><button id="reconnect">Reconnect</button></div>
   <div id="shell">
     <div id="tabs"><div id="tablist" style="display:contents"></div><form id="add"><input id="join" placeholder="join a channel..." autocomplete="off" spellcheck="false"><button>Join</button></form></div>
     <div id="rail" title="Drag to resize (double-click to reset)"></div>
@@ -111,6 +116,10 @@
 </div>
 <div id="login"><h2 style="letter-spacing:5px;color:var(--accent)">CONNECT TWITCH</h2><p class="muted">Press Connect, open the link Twitch shows and type the code. The app never sees your password.</p><div id="codebox" style="display:none"><div id="code"></div><p><a id="link" target="_blank" rel="noopener"></a></p></div><div><button id="connect">Connect Twitch</button></div><p id="lmsg" class="muted"></p></div>
 <div id="emo"><input id="emoQ" placeholder="Search emotes..." autocomplete="off" spellcheck="false"><div id="emoTabs"></div><div id="emoGrid"></div><div id="emoNote"></div></div><div id="ctx"></div><div id="tip"></div><div id="card"></div><div id="toast"></div>
+<div id="fol"><div class="box"><div class="top"><h2>CHANNELS YOU FOLLOW</h2><button class="x" id="folClose" title="Close (Esc)">&#10005;</button></div>
+  <div class="fbar"><input id="folQ" placeholder="Search..." autocomplete="off" spellcheck="false"><label class="tgl"><input type="checkbox" id="folLive"> Show only live</label></div>
+  <div class="fbar2"><button class="ghost" id="folSelLive">Select live</button><button class="ghost" id="folSelAll">Select all shown</button><button class="ghost" id="folNone">Clear</button><span class="muted" id="folInfo"></span></div>
+  <div id="folList"></div><div class="ffoot"><button id="folAdd">Add selected</button></div></div></div>
 <div id="settings"><div class="box"><div class="top" id="setTop"><h2>SETTINGS</h2><button class="x" id="closeSet" title="Close (Esc)">&#10005;</button></div><div class="sbody">
   <div class="sec"><h3>FONT</h3><div class="fonts" id="fontOpts"></div>
     <div class="row2"><label>Size</label><input type="range" id="size" min="11" max="32" step="1"><output id="sizeO"></output></div>
@@ -118,6 +127,10 @@
     <div id="prev">Casey: the quick brown fox jumps over the lazy dog 0123456789 &mdash; <b>bold</b> <i>italic</i><br>bdpq il1 O0 &mdash; "Hello, chat!" (how's it going?)</div></div>
   <div class="sec"><h3>CHAT</h3><label class="tgl"><input type="checkbox" id="recentHistory"> Load recent messages when I join a channel <small>(asks recent-messages.robotty.de, a community service: the channel name is sent to it)</small></label><label class="tgl"><input type="checkbox" id="compact"> Slim layout <small>(turn off for more padding everywhere)</small></label><label class="tgl"><input type="checkbox" id="showTime"> Show timestamps</label><label class="tgl"><input type="checkbox" id="mentionSound"> Play a sound when my name is mentioned</label><div class="row2" style="grid-template-columns:90px 1fr 120px"><label>Volume</label><input type="range" id="mentionVol" min="0" max="100" step="5"><span style="text-align:right"><output id="mentionVolO"></output> <button class="ghost" id="testChime">Test</button></span></div><label class="tgl"><input type="checkbox" id="mentionFlash"> Flash the channel tab until I open it</label>
     <label class="tgl"><input type="checkbox" id="altRows"> Alternate the background of every other message <small>(easier to follow fast chat)</small></label></div>
+  <div class="sec"><h3>FOLLOWED CHANNELS</h3><div class="muted">Add the channels you follow on Twitch as tabs (up to <span id="folMax">60</span> in all: Twitch limits how many chats one connection can follow).</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="folOpen">Add followed channels...</button></div>
+    <label class="tgl"><input type="checkbox" id="autoLive"> When a channel I follow goes live, add it as a tab</label>
+    <label class="tgl"><input type="checkbox" id="liveSound"> Play a chime when a channel goes live <small>(your joined channels, and followed ones when the box above is on)</small></label></div>
   <div class="sec"><h3>HIGHLIGHTS AND MUTES</h3>
     <label class="muted">Highlight words or phrases (alert like your name, separate with commas)</label><textarea id="hlWords" placeholder="casey, gg, giveaway" spellcheck="false"></textarea>
     <label class="muted">Muted users (their messages are hidden)</label><textarea id="muUsers" placeholder="nightbot, streamelements" spellcheck="false"></textarea>
@@ -172,7 +185,7 @@ function drawSettings() {
   $('mentionSound').checked = s.mentionSound !== false; $('mentionFlash').checked = s.mentionFlash !== false; $('mentionVol').value = s.mentionVolume; $('mentionVolO').textContent = s.mentionVolume + '%'; const setList = (id, arr) => { const el = $(id); if (document.activeElement !== el) el.value = (arr || []).join(', '); };
   setList('hlWords', s.highlightWords); setList('muUsers', s.mutedUsers); setList('muWords', s.mutedWords);
   $('alertList').innerHTML = S.channels.length ? S.channels.map((c) => '<label class="tgl"><input type="checkbox" data-alert="' + esc(c.login) + '"' + ((s.mutedAlerts || []).includes(c.login) ? '' : ' checked') + '> Alerts for ' + esc(c.name) + '</label>').join('') : '<span class="muted">Join a channel first.</span>';
-  $('acct').textContent = 'Logged in as ' + S.login + '. Your channels and settings stay on this PC.'; $('recentHistory').checked = !!s.recentHistory; if (document.activeElement !== $('playerPath')) $('playerPath').value = s.playerPath || ''; $('playerPref').value = s.playerPref || ''; $('playerStyle').value = s.playerStyle || 'own'; $('ads').value = s.ads || 'skip'; $('videoSource').value = s.videoSource || 'vlc'; $('compact').checked = s.compact !== false; $('showTime').checked = s.showTime !== false; $('altRows').checked = !!s.altRows;
+  $('acct').textContent = 'Logged in as ' + S.login + '. Your channels and settings stay on this PC.'; $('autoLive').checked = !!s.autoLive; $('liveSound').checked = s.liveSound !== false; $('folMax').textContent = S.maxChannels || 60; $('recentHistory').checked = !!s.recentHistory; if (document.activeElement !== $('playerPath')) $('playerPath').value = s.playerPath || ''; $('playerPref').value = s.playerPref || ''; $('playerStyle').value = s.playerStyle || 'own'; $('ads').value = s.ads || 'skip'; $('videoSource').value = s.videoSource || 'vlc'; $('compact').checked = s.compact !== false; $('showTime').checked = s.showTime !== false; $('altRows').checked = !!s.altRows;
   document.querySelectorAll('.layouts .opt').forEach((o) => o.classList.toggle('on', o.dataset.l === s.layout));
 }
 let saveT = null; function save(b) { Object.assign(S.settings, b); applySettings(S.settings); clearTimeout(saveT); saveT = setTimeout(() => post('settings', S.settings), 250); }
@@ -181,7 +194,7 @@ let saveT = null; function save(b) { Object.assign(S.settings, b); applySettings
 function drawStatus(s) {
   const first = !S; S = s; const ok = s.auth.status === 'ok';
   $('login').style.display = ok ? 'none' : 'grid'; $('app').style.display = ok ? 'flex' : 'none'; $('gear').style.display = ok ? '' : 'none'; $('who').textContent = ok ? s.login : ''; $('dash').style.display = ok ? '' : 'none';
-  $('banner').style.display = ok && s.needsModScopes ? 'flex' : 'none';
+  $('banner').style.display = ok && (s.needsModScopes || s.needsFollows) ? 'flex' : 'none';
   $('codebox').style.display = s.device ? '' : 'none'; if (s.device) { $('code').textContent = s.device.code; $('link').href = s.device.url; $('link').textContent = s.device.url; }
   $('lmsg').textContent = s.device ? 'Waiting for you to approve it on Twitch... (this page continues by itself)' : s.auth.status === 'error' ? s.auth.message : ''; $('connect').textContent = s.device ? 'Open the link again' : 'Connect Twitch';
   loaded = true; applySettings(s.settings); drawConn();
@@ -469,6 +482,42 @@ $('twLogout').onclick = async () => { await window.imcWindow.twitchLogout(); twi
 $('videoSource').onchange = (e) => { save({ videoSource: e.target.value }); drawTabs(); };
 $('ads').onchange = (e) => save({ ads: e.target.value });
 $('playerPath').onchange = async (e) => { save({ playerPath: e.target.value.trim() }); await new Promise((r) => setTimeout(r, 400)); playerInfo(); };
+$('autoLive').onchange = (e) => save({ autoLive: e.target.checked }); $('liveSound').onchange = (e) => save({ liveSound: e.target.checked });
+// ---- the channels you follow: pick some to add as tabs
+let folList = [], folSel = new Set();
+const folRoom = () => Math.max(0, (S.maxChannels || 60) - S.channels.length), folClose = () => { $('fol').style.display = 'none'; };
+function folShown() { const q = $('folQ').value.trim().toLowerCase(), only = $('folLive').checked; return folList.filter((f) => (!only || f.live) && (!q || f.name.toLowerCase().includes(q) || f.login.includes(q))); }
+function drawFol() {
+  const shown = folShown();
+  $('folList').innerHTML = shown.length ? shown.map((f) => '<label class="frow' + (f.added ? ' dis' : '') + '"><input type="checkbox" data-l="' + esc(f.login) + '"' + (f.added ? ' checked disabled' : folSel.has(f.login) ? ' checked' : '') + '><span class="fn">' + esc(f.name) + '</span><span class="fl">' + (f.added ? 'already added' : f.live ? '<b>LIVE</b> ' + f.live.viewers.toLocaleString() + (f.live.game ? ' &middot; ' + esc(f.live.game) : '') : 'offline') + '</span></label>').join('')
+    : '<div class="muted" style="padding:24px;text-align:center">' + (folList.length ? ($('folLive').checked ? 'None of the channels you follow is live right now.' : 'Nothing matches that.') : 'You do not follow any channels yet.') + '</div>';
+  $('folInfo').textContent = folSel.size + ' selected \u00b7 room for ' + folRoom() + ' more'; $('folAdd').disabled = !folSel.size;
+}
+async function openFol() {
+  if (S.needsFollows) { $('connect').onclick(); return; }   // the permission to read your follows comes with a fresh login
+  $('fol').style.display = 'block'; $('folList').innerHTML = '<div class="muted" style="padding:24px;text-align:center">Loading...</div>'; folSel = new Set(); $('folLive').checked = cfgs().followedOnlyLive !== false;
+  const r = await get('followed').catch(() => ({ error: 'Could not reach the app' })); if (r.error) { $('folList').innerHTML = '<div class="muted" style="padding:24px;text-align:center">' + esc(r.error) + '</div>'; return; }
+  folList = r.list; drawFol();
+}
+const pickFol = (list) => { folSel = new Set(); for (const f of list) { if (f.added || folSel.size >= folRoom()) continue; folSel.add(f.login); } drawFol(); };
+$('folOpen').onclick = openFol; $('folClose').onclick = folClose; $('fol').onmousedown = (e) => { if (e.target === $('fol')) folClose(); };
+$('folQ').oninput = drawFol; $('folLive').onchange = (e) => { save({ followedOnlyLive: e.target.checked }); drawFol(); };
+$('folSelLive').onclick = () => pickFol(folList.filter((f) => f.live)); $('folSelAll').onclick = () => pickFol(folShown()); $('folNone').onclick = () => { folSel = new Set(); drawFol(); };
+$('folList').onchange = (e) => { const l = e.target.dataset.l; if (!l) return; if (e.target.checked) { if (folSel.size >= folRoom()) { e.target.checked = false; toast('That is the most channels (' + (S.maxChannels || 60) + ') the app can follow at once'); return; } folSel.add(l); } else folSel.delete(l); drawFol(); };
+$('folAdd').onclick = async () => {
+  const r = await post('addchannels', { logins: Array.from(folSel) }).catch(() => ({ error: 'Could not reach the app' })); if (r.error) return toast(r.error);
+  drawStatus(r.status); folClose(); toast('Added ' + r.added + (r.added === 1 ? ' channel' : ' channels') + (r.skipped ? ' (' + r.skipped + ' left out: the limit is ' + (S.maxChannels || 60) + ')' : ''), true); if (!cur && r.status.channels[0]) openTab(r.status.channels[0].login);
+};
+// ---- a channel went live: a rising chime and a note
+let lastLiveChime = 0;
+function liveChime() {
+  const s = cfgs(); if (POP || s.liveSound === false || Date.now() - lastLiveChime < 3000) return; lastLiveChime = Date.now();
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume();
+    const vol = Math.pow((s.mentionVolume == null ? 60 : s.mentionVolume) / 100, 2) * 0.5, t = ac.currentTime;
+    [[523.25, 0], [659.25, 0.12], [783.99, 0.24], [1046.5, 0.36]].forEach(([f, d]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f; o.connect(g); g.connect(ac.destination); g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.5); o.start(t + d); o.stop(t + d + 0.55); });
+  } catch (e) { /* no audio */ }
+}
 $('recentHistory').onchange = (e) => save({ recentHistory: e.target.checked });
 $('importBtn').onclick = () => $('importFile').click();
 $('importFile').onchange = async (e) => {
@@ -520,9 +569,10 @@ document.addEventListener('contextmenu', (e) => {
   const emo = e.target.closest('#emoGrid img'), tab = e.target.closest('.tab'), row = e.target.closest('#log > .m, #log > .ev'), box = e.target.closest('input:not([type=range]):not([type=checkbox]):not([type=file]), textarea');
   if (emo) { e.preventDefault(); toggleFav(emo.dataset.n); } else if (tab) { e.preventDefault(); tabMenu(e, tab.dataset.c); } else if (row) { e.preventDefault(); rowMenu(e, row); } else if (box) { e.preventDefault(); textMenu(e, box); }
 });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { hideCtx(); $('settings').style.display = 'none'; hideCard(); hideEmo(); closeFind(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { folClose(); hideCtx(); $('settings').style.display = 'none'; hideCard(); hideEmo(); closeFind(); } });
 const es = new EventSource('/events');
 playerInfo(); get('health').then((h) => { if (h.version) $('ver').textContent = 'v' + h.version; }).catch(() => {});
+es.addEventListener('wentlive', (e) => { if (POP) return; const d = JSON.parse(e.data); liveChime(); toast(d.name + ' went live' + (d.viewers ? ' (' + d.viewers.toLocaleString() + ' watching)' : '') + (d.added ? ' and was added' : ''), true); if (d.added && !cur) openTab(d.login); });
 es.onopen = () => { serverDown = false; drawConn(); }; es.onerror = () => { serverDown = true; drawConn(); };
 es.addEventListener('status', (e) => drawStatus(JSON.parse(e.data)));
 es.addEventListener('backfill', async (e) => {   // older messages arrived for a channel
