@@ -59,28 +59,56 @@ function keepBounds(w, key) {
 }
 let pendingKey = null, pendingSet = false, settingsWin = null; app.on('browser-window-created', (e, w) => { if (pendingKey) { const k = pendingKey; pendingKey = null; keepBounds(w, k); if (pendingSet) { pendingSet = false; settingsWin = w; w.on('closed', () => { settingsWin = null; }); } } });
 // links open in the browser; a popout (this app's own page with ?popout=) opens as its own window, with the stream beside the chat if you asked to watch
+// Twitch's login page asks for a passkey / security key on its own the moment it opens. In this app that is a Windows dialog on top of the page that blocks it.
+// Only that automatic request ("conditional") is switched off; pressing a security-key button on the page still works.
+const NO_AUTO_PASSKEY = `(() => { try {
+  if (window.PublicKeyCredential) PublicKeyCredential.isConditionalMediationAvailable = () => Promise.resolve(false);
+  const c = navigator.credentials, get = c.get.bind(c);
+  c.get = (o) => (o && o.mediation === 'conditional' ? Promise.reject(new DOMException('Not allowed', 'NotAllowedError')) : get(o));
+} catch (e) {} })();`;
 app.on('web-contents-created', (e, wc) => {
+  try { if (wc.session === twitchSession()) { wc.debugger.attach('1.3'); wc.debugger.sendCommand('Page.enable').then(() => wc.debugger.sendCommand('Page.addScriptToEvaluateOnNewDocument', { source: NO_AUTO_PASSKEY })).catch(() => {}); } } catch (err) { /* the page still works, only with the prompt */ }
   if (wc.getType() !== 'window') return;   // the Twitch player frame is not a window of its own
   wc.setWindowOpenHandler(({ url: u }) => {
-    if (u.startsWith(url() + '?popout=')) { const watch = /[?&]watch=1/.test(u), key = watch ? 'chatWatch' : 'chat'; pendingKey = key; return { action: 'allow', overrideBrowserWindowOptions: Object.assign({ width: watch ? 1180 : 480, height: 760 }, savedBounds(key), { minWidth: 360, minHeight: 360, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png') }) }; }
-    if (u.startsWith(url() + '?settings=1') || u.startsWith(url() + '/?settings=1')) { if (settingsWin && !settingsWin.isDestroyed()) { settingsWin.show(); settingsWin.focus(); return { action: 'deny' }; } pendingKey = 'settings'; pendingSet = true; return { action: 'allow', overrideBrowserWindowOptions: Object.assign({ width: 760, height: 840 }, savedBounds('settings'), { minWidth: 420, minHeight: 320, title: 'Settings - IMC-Chat', frame: false, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png') }) }; }
+    if (u.startsWith(url() + '?popout=')) { const watch = /[?&]watch=1/.test(u), key = watch ? 'chatWatch' : 'chat'; pendingKey = key; return { action: 'allow', overrideBrowserWindowOptions: Object.assign({ width: watch ? 1180 : 480, height: 760 }, savedBounds(key), { minWidth: 360, minHeight: 360, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png'), webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true } }) }; }
+    if (u.startsWith(url() + '?settings=1') || u.startsWith(url() + '/?settings=1')) { if (settingsWin && !settingsWin.isDestroyed()) { settingsWin.show(); settingsWin.focus(); return { action: 'deny' }; } pendingKey = 'settings'; pendingSet = true; return { action: 'allow', overrideBrowserWindowOptions: Object.assign({ width: 760, height: 840 }, savedBounds('settings'), { minWidth: 420, minHeight: 320, title: 'Settings - IMC-Chat', frame: false, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png') , webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true } }) }; }
     if (/^https?:\/\//.test(u)) shell.openExternal(u); return { action: 'deny' };
   });
   wc.on('will-navigate', (ev, u) => { if (!u.startsWith(url()) && !u.startsWith('data:')) { ev.preventDefault(); if (/^https?:\/\//.test(u)) shell.openExternal(u); } });
 });
 // the player window: VLC drawn inside our own resizable window, with our own controls
 let vlcWindows = null;
-function chatPopout(login) { const w = new BrowserWindow(Object.assign({ width: 480, height: 760 }, savedBounds('chat'), { minWidth: 360, minHeight: 360, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png') })); keepBounds(w, 'chat'); w.loadURL(url() + '?popout=' + encodeURIComponent(login)); }
+function chatPopout(login) { const w = new BrowserWindow(Object.assign({ width: 480, height: 760 }, savedBounds('chat'), { minWidth: 360, minHeight: 360, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png'), webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true } })); keepBounds(w, 'chat'); w.loadURL(url() + '?popout=' + encodeURIComponent(login)); }
 // Twitch's own player in a window of ours. It has a browser profile of its own (kept between runs), so you log in to Twitch once, in that window:
 // Turbo or a subscription then means no ads. The app never sees the login: it only shows Twitch's pages and can tell whether the login cookie is there.
 const TWITCH_PARTITION = 'persist:imc-twitch', twitchHost = (u) => { try { const h = new URL(u).hostname; return h === 'twitch.tv' || h.endsWith('.twitch.tv') || h.endsWith('.ttvnw.net') || h.endsWith('.jtvnw.net'); } catch (e) { return false; } };
+// "Continue with Google / Amazon / Apple" must stay inside this window: if it opened in your browser, the login would end up there and never reach the app
+const SIGNIN_HOSTS = /(^|\.)(google\.com|gstatic\.com|googleusercontent\.com|googleapis\.com|recaptcha\.net|hcaptcha\.com|amazon\.com|ssl-images-amazon\.com|media-amazon\.com|apple\.com|cdn-apple\.com|icloud\.com)$/i;
+const signinHost = (u) => { try { return SIGNIN_HOSTS.test(new URL(u).hostname); } catch (e) { return false; } };
 function twitchWindow(opts, first) {
   const w = new BrowserWindow(Object.assign({ autoHideMenuBar: true, backgroundColor: '#000000', icon: icon('icon.png'), webPreferences: { partition: TWITCH_PARTITION, contextIsolation: true, sandbox: true } }, opts));
-  w.webContents.setWindowOpenHandler(({ url: u }) => { if (twitchHost(u)) return { action: 'allow' }; if (/^https?:\/\//.test(u)) shell.openExternal(u); return { action: 'deny' }; });
-  w.webContents.on('will-navigate', (ev, u) => { if (!twitchHost(u)) { ev.preventDefault(); if (/^https?:\/\//.test(u)) shell.openExternal(u); } });
+  w.webContents.setWindowOpenHandler(({ url: u }) => { if (twitchHost(u) || signinHost(u)) return { action: 'allow' }; if (/^https?:\/\//.test(u)) shell.openExternal(u); return { action: 'deny' }; });
+  w.webContents.on('will-navigate', (ev, u) => { if (!twitchHost(u) && !signinHost(u)) { ev.preventDefault(); if (/^https?:\/\//.test(u)) shell.openExternal(u); } });
+  const where = (u) => { try { const x = new URL(u); return x.hostname + x.pathname.slice(0, 40); } catch (e) { return '?'; } };   // what the window does is written to app.log (addresses without their query, never cookie values), to see where a login stops
+  w.webContents.on('did-navigate', (e, u) => log('twitch window ->', where(u))); w.webContents.on('did-fail-load', (e, code, desc, u, main) => { if (main) log('twitch window failed:', code, desc, where(u)); });
+  w.webContents.on('console-message', (e) => { if (e.level === 'error' && /login|auth|passport|passkey|webauthn|captcha/i.test(e.message || '')) log('twitch window error:', String(e.message).slice(0, 140)); });
   w.loadURL(first); return w;
 }
 const twitchSession = () => session.fromPartition(TWITCH_PARTITION);
+// Twitch's login must outlive the app: cookies without an expiry would be dropped when the app closes, so they are given one, and the store is written out soon after each change
+let flushT = null;
+function keepTwitchLogin() {
+  const ses = twitchSession();
+  ses.setUserAgent(ses.getUserAgent().replace(/\s*Electron\/\S+/, '').replace(/\s*imc-chat\/\S+/i, ''));   // a plain Chrome name: Google and Twitch's bot checks refuse a sign-in from "Electron"
+  ses.cookies.on('changed', (e, c, cause, removed) => {
+    if (removed && /^(auth-token|login|twilight-user)$/.test(c.name)) log('twitch login cookie removed:', c.name, cause);
+    if (removed || !twitchHost('https://' + String(c.domain).replace(/^\./, ''))) return;
+    if (c.session) ses.cookies.set({ url: 'https://' + String(c.domain).replace(/^\./, '') + (c.path || '/'), name: c.name, value: c.value, domain: c.domain, path: c.path || '/', secure: c.secure, httpOnly: c.httpOnly, sameSite: c.sameSite, expirationDate: Date.now() / 1000 + 365 * 86400 }).catch(() => {});
+    if (/^(auth-token|login|twilight-user|persistent)$/.test(c.name)) { log('twitch login cookie', c.name, c.session ? '(session)' : '(persistent)'); ses.cookies.flushStore().catch(() => {}); }
+    clearTimeout(flushT); flushT = setTimeout(() => ses.cookies.flushStore().catch(() => {}), 3000);
+  });
+  app.on('before-quit', () => { ses.cookies.flushStore().catch(() => {}); });
+}
 ipcMain.handle('twitch:player', (e, login, opt) => {
   const clip = opt && /^[A-Za-z0-9_-]{8,80}$/.test(String(opt.clip || '')) ? opt.clip : '';
   if (clip) { twitchWindow({ width: 1100, height: 640, minWidth: 420, minHeight: 260, title: String(opt.title || 'Clip').slice(0, 80) + ' - Twitch' }, 'https://clips.twitch.tv/embed?clip=' + encodeURIComponent(clip) + '&parent=twitch.tv&autoplay=true&muted=false'); return { ok: true }; }
@@ -97,7 +125,7 @@ ipcMain.handle('player:watch', async (e, login, opt) => {
 ipcMain.on('flash', () => { if (win && !win.isFocused()) win.flashFrame(true); });   // a mention while the window is in the background: the taskbar button flashes
 app.on('second-instance', openWindow);
 app.whenReady().then(() => {
-  app.setAppUserModelId('com.itmecasey.imcchat'); tray = new Tray(icon('tray-grey.png').resize({ width: 24, height: 24 })); tray.on('click', openWindow); refreshTray(); startServer();
+  app.setAppUserModelId('com.itmecasey.imcchat'); tray = new Tray(icon('tray-grey.png').resize({ width: 24, height: 24 })); tray.on('click', openWindow); refreshTray(); startServer(); keepTwitchLogin();
   if (!process.argv.includes('--hidden')) openWindow();
 });
 app.on('window-all-closed', () => { /* stay in the tray */ });
