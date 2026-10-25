@@ -408,7 +408,7 @@ $('emoGrid').onclick = (e) => {
   const n = e.target.dataset.n; if (!n) return; const m = $('msg'), a = m.selectionStart == null ? m.value.length : m.selectionStart, b = m.selectionEnd == null ? a : m.selectionEnd, pre = m.value.slice(0, a), sp = pre && !/\s$/.test(pre) ? ' ' : '';
   m.value = pre + sp + n + ' ' + m.value.slice(b); const at = (pre + sp + n + ' ').length; m.focus(); m.setSelectionRange(at, at); useEmotes([n]); updateCnt();
 };
-document.addEventListener('click', (e) => { if (!e.target.closest('#emo') && !e.target.closest('#emoBtn')) hideEmo(); });
+document.addEventListener('click', (e) => { if (!e.composedPath().some((n) => n.id === 'emo' || n.id === 'emoBtn')) hideEmo(); });   // the path is taken when the click happens: a tab or emote that redraws the picker is already gone from the page by now, so closest() would call it "outside"
 
 // ---------------------------------------------------------------- tab completion: @name for chatters, plain words for emotes
 let tc = null;
