@@ -13,7 +13,8 @@
   header { display: flex; align-items: center; gap: 14px; padding: 0 0 0 18px; padding-right: calc(100vw - env(titlebar-area-width, calc(100vw - 138px))); background: var(--panel); position: relative; flex: none; -webkit-app-region: drag; height: 40px; }
   header::after { content:""; position:absolute; left:0; right:0; bottom:0; height:4px; background: linear-gradient(90deg,var(--accent) 0 30%,var(--accent2) 30% 55%,var(--danger) 55% 75%,var(--accent2) 75% 90%,var(--text) 90%); }
   header > * { -webkit-app-region: no-drag; } header h1 { -webkit-app-region: drag; }
-  h1 { font-size: 1.1em; letter-spacing: 5px; font-weight: 800; } header .sp { flex: 1; } #who { font-size: 1.1em; font-weight: 800; letter-spacing: 2px; color: var(--accent); } #dash { color: var(--muted); font-weight: 800; }
+  .logo { width: 24px; height: 24px; flex: none; -webkit-app-region: drag; pointer-events: none; } header .logo { margin-right: -6px; } #settings .top .logo { margin-right: -2px; }
+  h1 { font-family: "IMC Sans", sans-serif; font-size: 1.1em; letter-spacing: 5px; font-weight: 400; } header .sp { flex: 1; } #who { font-size: 1.1em; font-weight: 800; letter-spacing: 2px; color: var(--accent); } #dash { color: var(--muted); font-weight: 800; }
   /* the gear is one of the window's own buttons: same width, full header height, same hover */
   #ver { font-size: .62em; color: var(--muted); letter-spacing: 1px; margin-right: 6px; } button.sysbtn { width: 46px; height: 100%; padding: 0; background: transparent; color: var(--text); outline: 0; border-radius: 0; } button.sysbtn:hover { background: color-mix(in srgb, var(--text) 14%, transparent); filter: none; } button.sysbtn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.2; }
   :root { --bh: 34px; }
@@ -30,11 +31,14 @@
   .tab { padding: 8px 14px; background: var(--panel2); cursor: pointer; font-size: .9em; white-space: nowrap; display: flex; gap: 8px; align-items: center; border-top: 3px solid transparent; position: relative; }
   body.vertical .tab { border-top: 0; border-left: 4px solid transparent; padding: 9px 12px; background: transparent; } .tab:hover { background: var(--hover); }
   .tab.on { background: var(--bg); border-color: var(--accent); font-weight: 700; } body.vertical .tab.on { background: var(--bg); border-left-color: var(--accent); } .tab .nm { overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; min-width: 0; } .tab .sw, .tab .x { margin-left: auto; } .tab .sw + .x { margin-left: 0; } .tab .x { color: var(--muted); font-size: .8em; opacity: 0; } .tab:hover .x { opacity: 1; } .tab .x:hover { color: var(--danger); }
-  .tab .dot { display: none; flex: none; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent2); color: var(--on); font-size: .68em; font-weight: 800; align-items: center; justify-content: center; } .tab.new .dot { display: inline-flex; } .tab.ment .dot { background: var(--danger); color: #fff; } .tab.drop { box-shadow: inset 3px 0 0 var(--accent); } .tab .av { width: 22px; height: 22px; border-radius: 50%; flex: none; background: var(--line); object-fit: cover; } .tab .sw { color: var(--accent2); }
+  .avw { position: relative; display: flex; flex: none; } .tab .dot { display: none; position: absolute; top: -6px; right: -8px; z-index: 1; flex: none; min-width: 14px; height: 14px; padding: 0 3px; border-radius: 7px; box-shadow: 0 0 0 2px var(--panel2); background: var(--accent2); color: var(--on); font-size: .58em; font-weight: 800; align-items: center; justify-content: center; } body.vertical .tab .dot { box-shadow: 0 0 0 2px var(--panel); } .tab.new .dot { display: inline-flex; } .tab.ment .dot { background: var(--danger); color: #fff; } .tab.drop { box-shadow: inset 3px 0 0 var(--accent); } .tab .av { width: 22px; height: 22px; border-radius: 50%; flex: none; background: var(--line); object-fit: cover; } .tab .sw { color: var(--accent2); }
   #add { display: flex; gap: 6px; padding: 0 0 6px 12px; margin-left: auto; flex: none; } #add input { width: 170px; font-size: .85em; } body.vertical #add { margin: 8px 10px 4px; padding: 0; order: -1; } body.vertical #add input { flex: 1; width: auto; }
+  body.vertical.railmin #tabs, body:not(.compact).vertical.railmin #tabs { width: 64px; padding: 8px 0; } body.railmin .tab { justify-content: center; padding-left: 0; padding-right: 0; } body.railmin .tab .nm, body.railmin .tab .pw, body.railmin .tab .x, body.railmin .tab .sw, body.railmin #add { display: none; }   /* slid shut: avatars only */
+  #railBtn { display: none; } body.vertical:not(.pop) #railBtn { display: flex; flex: none; justify-content: flex-start; align-items: center; padding: 8px 0 8px 18px; background: var(--panel); border: 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 1.1em; cursor: pointer; } #railBtn:hover { color: var(--accent); } #railBtn::before { content: '\21E4'; } body.railmin #railBtn::before { content: '\21E5'; }   /* <-| closes the list to avatars, |-> opens it: a frame of its own under the list, so tabs never slide behind it */
+  body.vertical #tabs { overflow: hidden; } body.vertical #tablist { display: block !important; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
   #rail { display: none; width: 6px; margin-left: -3px; flex: none; cursor: col-resize; z-index: 4; background: transparent; position: relative; } #rail:hover, #rail.drag { background: var(--accent); opacity: .7; } body.vertical:not(.pop) #rail { display: block; }
   main { flex: 1; display: flex; min-height: 0; } #chatcol { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  #logwrap { flex: 1; min-height: 0; position: relative; display: none; flex-direction: column; } #log { flex: 1; overflow-y: auto; padding: 11px 17px; line-height: 1.45; }
+  #logwrap { flex: 1; min-height: 0; position: relative; display: none; flex-direction: column; } #log { flex: 1; overflow-y: auto; padding: 0; line-height: 1.45; }
   #find { display: none; gap: 8px; padding: 8px 16px; background: var(--panel2); border-bottom: 1px solid var(--line); align-items: center; } #find input { flex: 1; }
   #jump { display: none; position: absolute; left: 50%; transform: translateX(-50%); bottom: 14px; box-shadow: 0 4px 16px #0009; z-index: 3; }
   .lnk { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; word-break: break-all; } .lnk:hover { color: var(--accent2); }
@@ -44,7 +48,7 @@
   .tab.ment:not(.on) { animation: flash 1s ease-in-out infinite; } body.noflash .tab.ment { animation: none; } @media (prefers-reduced-motion: reduce) { .tab.ment:not(.on) { animation: none; background: var(--accent2); color: var(--on); } }
   @keyframes pop { from { box-shadow: inset 0 0 0 100px color-mix(in srgb, var(--accent2) 45%, transparent); } to { box-shadow: inset 0 0 0 100px transparent; } } .m.ment.fresh { animation: pop 1.6s ease-out; }
   /* roomy: with the slim layout off, everything gets more space */
-  body:not(.compact) #log { padding: 19px 29px; line-height: 1.7; } body:not(.compact) .m { padding: 8px 13px; margin-bottom: 2px; } body:not(.compact) .m.ment, body:not(.compact) .m.cheer { padding-left: 15px; } body:not(.compact) .m .t { margin-right: 10px; } body:not(.compact) .m img.bd { margin-right: 5px; } body:not(.compact) .m img.e { margin: -.3em 3px; }
+  body:not(.compact) #log { padding: 0; line-height: 1.7; } body:not(.compact) .m { padding: 8px 13px; margin-bottom: 2px; } body:not(.compact) .m.ment, body:not(.compact) .m.cheer { padding-left: 15px; } body:not(.compact) .m .t { margin-right: 10px; } body:not(.compact) .m img.bd { margin-right: 5px; } body:not(.compact) .m img.e { margin: -.3em 3px; }
   body:not(.compact) .ev { margin: 12px 0; padding: 14px 18px; gap: 14px; } body:not(.compact) .tab { padding: 13px 20px; gap: 11px; } body:not(.compact).vertical .tab { padding: 14px 18px; } body:not(.compact) #tabs { padding-top: 10px; } body:not(.compact).vertical #tabs { padding: 12px 0; width: var(--rail, 240px); } body:not(.compact) #add { padding-bottom: 10px; padding-left: 18px; }
   body:not(.compact) #bar { padding: 16px 26px; gap: 12px; } body:not(.compact) #modbar { padding: 12px 26px; gap: 10px; } body:not(.compact) #find { padding: 12px 26px; } body:not(.compact) #banner { padding: 12px 26px; } body:not(.compact) header { padding-left: 26px; }
   body:not(.compact) #settings .sec { padding: 22px 28px; gap: 16px; } body:not(.compact) #card .bodyc { padding: 18px 20px; gap: 14px; } body:not(.compact) #emoGrid { padding: 14px; gap: 8px; } body:not(.compact) #emoTabs { padding: 12px; gap: 6px; }
@@ -55,20 +59,30 @@
   #ctx { position: fixed; z-index: 70; display: none; min-width: 200px; background: var(--panel); border: 2px solid var(--accent); box-shadow: 0 10px 30px #000a; padding: 4px 0; } #ctx .ci { padding: 7px 16px; cursor: pointer; font-size: .85em; white-space: nowrap; } #ctx .ci:hover { background: var(--hover); } #ctx .ci.dg { color: var(--danger); } #ctx hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
   /* a popout window: one channel's chat, with the stream beside it when you watch */
   #player, #popbar { display: none; } #player iframe { width: 100%; height: 100%; border: 0; background: #000; }
-  body.pop header, body.pop #tabs, body.pop #banner { display: none !important; } body.pop #popbar { display: flex; gap: 12px; align-items: center; padding: 6px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex: none; } #popName { font-weight: 800; letter-spacing: 2px; } #popLive { color: var(--muted); font-size: .8em; flex: 1; }
+  body.pop header, body.pop #tabs, body.pop #banner { display: none !important; } body.pop #popbar { display: flex; gap: 12px; align-items: center; padding: 6px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex: none; } #popName { font-family: "IMC Sans", sans-serif; font-weight: 400; letter-spacing: 2px; } #popLive { color: var(--muted); font-size: .8em; flex: 1; }
   body.pop.watching #player { display: block; flex: 1 1 62%; min-width: 0; background: #000; } body.pop.watching #chatcol { flex: 0 0 380px; }
   @media (max-width: 900px) { body.pop.watching main { flex-direction: column; } body.pop.watching #player { flex: 0 0 42%; } body.pop.watching #chatcol { flex: 1 1 auto; } }
   body.notime .t { display: none; } body.alt #log > :nth-child(even):not(.ment):not(.cheer):not(.hl):not(.ev) { background: color-mix(in srgb, var(--text) 6%, transparent); } body.alt #log > .m:nth-child(even):hover { background: var(--hover); }
+  .tgl input[type=checkbox] { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 38px; height: 20px; border: 2px solid var(--line); border-radius: 12px; background: var(--input); padding: 0; cursor: pointer; transition: background .15s, border-color .15s; }   /* a slider toggle */
+  .tgl input[type=checkbox]::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transition: transform .15s, background .15s; } .tgl input[type=checkbox]:checked { background: var(--accent); border-color: var(--accent); } .tgl input[type=checkbox]:checked::after { transform: translateX(18px); background: var(--on, #fff); } .tgl input[type=checkbox]:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; } .tgl input[type=checkbox]:disabled { opacity: .5; cursor: default; }
   .tgl { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: .9em; } .tgl input { width: 18px; height: 18px; accent-color: var(--accent); padding: 0; } .tgl small { color: var(--muted); font-size: .8em; }
   .m { padding: 3px 5px; word-wrap: break-word; position: relative; } .m:hover { background: var(--hover); } .m.ment { background: color-mix(in srgb, var(--accent2) 18%, transparent); border-left: 3px solid var(--accent2); padding-left: 9px; } .m.mine .n { text-decoration: underline; }
   .m.cheer { border-left: 3px solid var(--accent); padding-left: 9px; background: color-mix(in srgb, var(--accent) 10%, transparent); } .m.hl { background: color-mix(in srgb, var(--accent) 14%, transparent); } .m .tag { font-size: .7em; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-right: 6px; }
   .m .t { color: var(--muted); font-size: .7em; margin-right: 6px; opacity: .8; } .m .n { font-weight: calc(var(--fw) + 300 > 900 ? 900 : var(--fw) + 300); cursor: pointer; } .m .n:hover { text-decoration: underline; }
   .m img.e { height: 1.6em; vertical-align: middle; margin: -.3em 1px; } .m img.bd { height: 1.15em; vertical-align: middle; margin: -.2em 3px -.2em 0; } .m img.gif { display: block; max-height: 170px; max-width: 280px; margin: 4px 0; border: 2px solid var(--line); }
-  .m .rp { display: block; color: var(--muted); font-size: .8em; } .m .acts { display: none; position: absolute; right: 6px; top: 1px; background: var(--panel); border: 1px solid var(--line); } .m:hover .acts { display: flex; }
+  .m .rp { display: block; color: var(--rc); font-size: .8em; }
+  .m.rpl { --rc: var(--accent2); position: relative; border-left: 3px solid var(--rc); padding-left: 9px; } .m.rpl::before, .m.rpl::after { content: ''; position: absolute; left: -3px; width: 9px; height: 3px; background: var(--rc); } .m.rpl::before { top: 0; } .m.rpl::after { bottom: 0; }   /* a reply: a [ down the left edge, and the message it answers in the same colour */ .m .acts { display: none; position: absolute; right: 6px; top: 1px; background: var(--panel); border: 1px solid var(--line); } .m:hover .acts { display: flex; }
   .acts span { padding: 1px 7px; font-size: .72em; cursor: pointer; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; } .acts span:hover { color: var(--text); background: var(--hover); } .acts span.dg:hover { color: var(--danger); }
   .ev { margin: 6px 0; padding: 7px 12px; border-left: 4px solid var(--accent2); background: var(--panel); display: flex; gap: 10px; align-items: flex-start; } .ev svg { margin-top: .2em; color: var(--accent2); font-size: 1.15em; } .ev .hd { font-weight: 800; } .ev .bd2 { color: var(--text); } .ev .who { color: var(--muted); font-size: .85em; }
+  .ev-redeem, .ev-poll, .ev-prediction { border-color: var(--accent); } .ev-redeem svg, .ev-poll svg, .ev-prediction svg { color: var(--accent); } .ev-hype_train { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, var(--panel)); } .ev-hype_train svg { color: var(--danger); } .ev-ad_break { border-color: var(--muted); } .ev-ad_break svg { color: var(--muted); }
+  .m img.e.big { height: 4.2em; margin: -.3em 4px; } .m.fx { border-left: 3px solid transparent; border-image: linear-gradient(180deg, var(--accent), var(--accent2), var(--danger)) 1; padding-left: 9px; background: linear-gradient(90deg, color-mix(in srgb, var(--accent2) 16%, transparent), transparent 70%); } .m .tag.src { background: var(--panel2); color: var(--muted); } .m .fs { color: var(--accent); font-size: .8em; margin-left: 3px; cursor: default; }
+  .tab .spark { width: 36px; height: 12px; flex: none; fill: var(--accent2); opacity: .75; } .tab .nm { flex: 1 1 auto; } body.railmin .tab .spark, body.pop .tab .spark, body.noact .tab .spark { display: none; } #card .rec { display: grid; gap: 3px; font-size: .85em; border-top: 1px solid var(--line); padding-top: 8px; } #card .rec div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } #card .rec .lb { color: var(--accent); letter-spacing: 3px; font-size: .7em; }
+  .clipcard { display: flex; gap: 10px; margin: 5px 0 2px; padding: 6px; max-width: 460px; min-height: 66px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); cursor: pointer; } .clipcard:hover { background: var(--hover); border-color: var(--accent); }
+  .clipcard .th { position: relative; flex: none; width: 128px; aspect-ratio: 16 / 9; background: var(--line); } .clipcard .th img { width: 100%; height: 100%; object-fit: cover; display: block; } .clipcard .dur { position: absolute; right: 3px; bottom: 3px; padding: 0 4px; font-size: .7em; background: #000c; color: #fff; } .clipcard .pl { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 1.8em; opacity: 0; background: #0006; } .clipcard:hover .pl { opacity: 1; }
+  .clipcard .ci2 { min-width: 0; display: grid; gap: 2px; } .clipcard .ct { font-weight: 700; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .clipcard .cm { font-size: .78em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ev-raid { border-color: var(--danger); } .ev-raid svg { color: var(--danger); } .ev-announcement { border-color: var(--accent); } .ev-announcement svg { color: var(--accent); }
   .an-blue { border-color: #4a8dff; } .an-blue svg { color: #4a8dff; } .an-green { border-color: #3fb868; } .an-green svg { color: #3fb868; } .an-orange { border-color: #f39120; } .an-orange svg { color: #f39120; } .an-purple { border-color: #9b6cff; } .an-purple svg { color: #9b6cff; }
+  #msg { flex: 1; min-width: 0; min-height: var(--bh); max-height: 7em; overflow-y: auto; padding: 0 10px; font: inherit; font-size: .95em; line-height: calc(var(--bh) - 4px); background: var(--input); color: var(--text); border: 2px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; outline: none; cursor: text; } #msg:focus { border-color: var(--accent); } #msg.empty::before { content: attr(data-ph); color: var(--muted); pointer-events: none; } #msg img.e { height: 22px; vertical-align: top; margin: 4px 1px 0; }   /* the message as you write it: emotes are pictures */
   #bar { display: flex; gap: 8px; padding: 10px 16px; background: var(--panel); flex: none; flex-wrap: wrap; align-items: center; } #bar input { flex: 1; } #reply { flex-basis: 100%; font-size: .8em; color: var(--accent); display: none; } #reply b { cursor: pointer; color: var(--danger); margin-left: 8px; }
   #modbar { display: none; gap: 6px; padding: 8px 16px; background: var(--panel2); border-top: 1px solid var(--line); flex: none; flex-wrap: wrap; align-items: center; } #modbar .lb { color: var(--accent2); font-size: .72em; letter-spacing: 3px; display: flex; gap: 6px; align-items: center; margin-right: 6px; }
   #modbar button.on { background: var(--accent); } #modbar button.danger { background: var(--danger); color: #fff; }
@@ -87,31 +101,36 @@
   #emoGrid { flex: 1; overflow-y: auto; padding: 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; align-content: start; } #emoGrid img { width: 36px; height: 36px; object-fit: contain; cursor: pointer; padding: 2px; } #emoGrid img:hover { background: var(--hover); outline: 1px solid var(--accent); }
   #emoNote { padding: 6px 10px; font-size: .72em; color: var(--muted); border-top: 1px solid var(--line); } #emoGrid .none { grid-column: 1 / -1; color: var(--muted); font-size: .85em; padding: 20px; text-align: center; }
   #fol { position: fixed; inset: 0; background: #0009; display: none; z-index: 65; } #fol .box { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(580px, 94vw); height: min(660px, 90vh); display: flex; flex-direction: column; background: var(--panel); border: 2px solid var(--accent); box-shadow: 0 16px 50px #000c; }
-  #fol .top { flex: none; display: flex; align-items: center; height: 40px; padding-left: 16px; background: var(--panel2); border-bottom: 2px solid var(--accent); } #fol h2 { font-size: .9em; letter-spacing: 5px; flex: 1; font-weight: 800; } #fol .x { width: 46px; height: 100%; border: 0; background: transparent; color: var(--text); font-size: 1.1em; cursor: pointer; padding: 0; } #fol .x:hover { background: var(--danger); color: #fff; }
+  #fol .top { flex: none; display: flex; align-items: center; height: 40px; padding-left: 16px; background: var(--panel2); border-bottom: 2px solid var(--accent); } #fol h2 { font-family: "IMC Sans", sans-serif; font-size: .9em; letter-spacing: 5px; flex: 1; font-weight: 400; } #fol .x { width: 46px; height: 100%; border: 0; background: transparent; color: var(--text); font-size: 1.1em; cursor: pointer; padding: 0; } #fol .x:hover { background: var(--danger); color: #fff; }
   #fol .fbar { flex: none; display: flex; gap: 14px; align-items: center; padding: 12px 16px 6px; } #fol .fbar input:not([type]) { flex: 1; } #fol .fbar2 { flex: none; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 6px 16px 10px; border-bottom: 1px solid var(--line); } #fol .fbar2 .muted { margin-left: auto; }
   #folList { flex: 1; overflow-y: auto; padding: 6px 8px; } .frow { display: flex; align-items: center; gap: 10px; padding: 7px 10px; cursor: pointer; } .frow:hover { background: var(--hover); } .frow input { width: 18px; height: 18px; accent-color: var(--accent); padding: 0; flex: none; } .frow .fn { font-weight: 700; } .frow .fl { margin-left: auto; font-size: .78em; color: var(--muted); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; } .frow .fl b { color: var(--danger); letter-spacing: 1px; } .frow.dis { opacity: .55; cursor: default; }
   #fol .ffoot { flex: none; padding: 12px 16px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
   /* settings */
+  body.setwin header, body.setwin #app, body.setwin #login, body.setwin #banner { display: none !important; } body.setwin #settings { position: static; display: block !important; background: none; } body.setwin #settings .box { position: static; width: 100%; height: 100vh; max-width: none; max-height: none; min-width: 0; resize: none; border: 0; box-shadow: none; } body.setwin #settings .top { cursor: default; -webkit-app-region: drag; } body.setwin #settings .top button { -webkit-app-region: no-drag; } body.setwin #settings .box { border: 1px solid var(--accent); }   /* the window has no frame of its own: this bar drags it and the X closes it */
   #settings { position: fixed; inset: 0; background: #0009; display: none; z-index: 60; }
   #settings .box { position: absolute; display: flex; flex-direction: column; background: var(--panel); border: 2px solid var(--accent); box-shadow: 0 16px 50px #000c; width: 760px; height: 82vh; min-width: 420px; min-height: 280px; max-width: 98vw; max-height: 98vh; resize: both; overflow: hidden; }
   #settings .top { flex: none; display: flex; align-items: center; gap: 10px; padding: 0 0 0 16px; height: 40px; background: var(--panel2); border-bottom: 2px solid var(--accent); cursor: move; user-select: none; position: relative; }
   #settings .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: linear-gradient(90deg,var(--accent) 0 30%,var(--accent2) 30% 55%,var(--danger) 55% 75%,var(--accent2) 75% 90%,var(--text) 90%); }
-  #settings h2 { font-size: .9em; letter-spacing: 6px; flex: 1; font-weight: 800; } #settings .x { width: 46px; height: 100%; border: 0; background: transparent; color: var(--text); font-size: 1.1em; cursor: pointer; letter-spacing: 0; padding: 0; display: flex; align-items: center; justify-content: center; } #settings .x:hover { background: var(--danger); color: #fff; filter: none; }
-  #settings .sbody { flex: 1; overflow-y: auto; } #settings .sec { padding: 14px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; } #settings h3 { font-size: .7em; letter-spacing: 4px; color: var(--accent); }
+  #settings h2 { font-family: "IMC Sans", sans-serif; font-size: .9em; letter-spacing: 6px; flex: 1; font-weight: 400; } #settings .x { width: 46px; height: 100%; border: 0; background: transparent; color: var(--text); font-size: 1.1em; cursor: pointer; letter-spacing: 0; padding: 0; display: flex; align-items: center; justify-content: center; } #settings .x:hover { background: var(--danger); color: #fff; filter: none; }
+  #settings .sbody { flex: 1; min-height: 0; display: flex; } #settings .spane { flex: 1; min-width: 0; overflow-y: auto; } .cat-off { display: none !important; }
+  #setGrip { flex: none; width: 6px; margin-left: -3px; cursor: col-resize; z-index: 2; } #setGrip:hover, #setGrip.drag { background: var(--accent); opacity: .7; }
+  #setRail { flex: none; width: var(--setrail, 150px); background: var(--panel2); border-right: 1px solid var(--line); padding: 8px 0; overflow-y: auto; } #setRail button { display: block; width: 100%; height: auto; padding: 13px 16px; text-align: left; background: transparent; color: var(--muted); border: 0; border-left: 4px solid transparent; letter-spacing: 3px; font-size: .75em; } #setRail button:hover { background: var(--hover); color: var(--text); filter: none; } #setRail button.on { color: var(--text); border-left-color: var(--accent); background: var(--bg); } #settings .sec { padding: 14px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; } #settings h3 { font-size: .7em; letter-spacing: 4px; color: var(--accent); }
+  .dd { position: relative; max-width: 420px; } .dd > button { width: 100%; height: auto; min-height: var(--bh); padding: 8px 12px; justify-content: space-between; gap: 10px; text-transform: none; letter-spacing: 0; font-size: 1em; font-weight: 400; background: var(--input); color: var(--text); border: 2px solid var(--line); text-align: left; } .dd > button:hover, .dd.open > button { border-color: var(--accent); filter: none; } .dd > button::after { content: '\25BE'; color: var(--muted); }
+  .dd .list { display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 5; background: var(--panel2); border: 2px solid var(--accent); border-top: 0; max-height: 360px; overflow-y: auto; box-shadow: 0 10px 24px #000a; } .dd.open .list { display: block; } .dd .it { padding: 9px 12px; cursor: pointer; } .dd .it:hover { background: var(--hover); } .dd .it.on { border-left: 4px solid var(--accent); padding-left: 8px; } .dd .it .s { font-size: 1.1em; } .dd .it .d, .dd > button .d { color: var(--muted); font-size: .78em; font-family: var(--font); }
   .fonts, .layouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; } .opt { background: var(--panel2); border: 2px solid var(--line); padding: 10px 12px; cursor: pointer; } .opt:hover { border-color: var(--muted); } .opt.on { border-color: var(--accent); } .opt .s { font-size: 1.5em; line-height: 1.1; } .opt .d { color: var(--muted); font-size: .72em; margin-top: 2px; font-family: "Segoe UI", sans-serif; }
   .row2 { display: grid; grid-template-columns: 90px 1fr 70px; gap: 12px; align-items: center; } .row2 label { font-size: .72em; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; } input[type=range] { padding: 0; accent-color: var(--accent); width: 100%; } .row2 output { font-size: .85em; text-align: right; }
   #prev { background: var(--bg); border: 2px solid var(--line); padding: 12px 14px; line-height: 1.5; } .tg { margin-bottom: 4px; font-size: .68em; letter-spacing: 3px; color: var(--muted); } .themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .th { border: 2px solid var(--line); cursor: pointer; overflow: hidden; } .th.on { border-color: var(--accent); outline: 2px solid var(--accent); } .th .sw { height: 46px; display: flex; align-items: flex-end; padding: 6px 8px; gap: 4px; } .th .sw i { width: 14px; height: 14px; display: block; } .th .nm { padding: 5px 8px; font-size: .78em; font-weight: 700; background: var(--panel2); font-family: "Segoe UI", sans-serif; }
 </style></head>
 <body>
-<header><h1>IMC-CHAT</h1><span id="dash">-</span><span id="who"></span><span id="conn"></span><span class="sp"></span><span id="ver"></span><button class="sysbtn" id="gear" title="Settings" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 15.500a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7z"/><path d="M19.400 13a7.600 7.600 0 0 0 0-2l2-1.600-2-3.400-2.400.9a7.500 7.500 0 0 0-1.700-1L15 3.300h-4l-.3 2.600a7.500 7.500 0 0 0-1.700 1l-2.400-.9-2 3.400L6.600 11a7.600 7.600 0 0 0 0 2l-2 1.600 2 3.400 2.400-.9a7.500 7.500 0 0 0 1.700 1l.3 2.600h4l.3-2.600a7.500 7.500 0 0 0 1.700-1l2.400.9 2-3.400z"/></svg></button></header>
+<header><img class="logo" src="/icon.png" alt=""><h1>IMC-CHAT</h1><span id="dash">-</span><span id="who"></span><span id="conn"></span><span class="sp"></span><span id="ver"></span><button class="sysbtn" id="gear" title="Settings" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 15.500a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7z"/><path d="M19.400 13a7.600 7.600 0 0 0 0-2l2-1.600-2-3.400-2.400.9a7.500 7.500 0 0 0-1.700-1L15 3.300h-4l-.3 2.600a7.500 7.500 0 0 0-1.700 1l-2.400-.9-2 3.400L6.600 11a7.600 7.600 0 0 0 0 2l-2 1.600 2 3.400 2.400-.9a7.500 7.500 0 0 0 1.700 1l.3 2.600h4l.3-2.600a7.500 7.500 0 0 0 1.700-1l2.400.9 2-3.400z"/></svg></button></header>
 <div id="app">
   <div id="banner"><span>Reconnect Twitch once to turn on new features (moderator tools, your own emotes, followed channels): they need new permissions.</span><button id="reconnect">Reconnect</button></div>
   <div id="shell">
-    <div id="tabs"><div id="tablist" style="display:contents"></div><form id="add"><input id="join" placeholder="join a channel..." autocomplete="off" spellcheck="false"><button>Join</button></form></div>
+    <div id="tabs"><div id="tablist" style="display:contents"></div><form id="add"><input id="join" placeholder="join a channel..." autocomplete="off" spellcheck="false"><button>Join</button></form><button type="button" id="railBtn" data-tip="Collapse or expand the list"></button></div>
     <div id="rail" title="Drag to resize (double-click to reset)"></div>
     <main><div id="player"></div><div id="chatcol"><div id="popbar"><span id="popName"></span><span id="popLive"></span><button class="ghost" id="popPlayer" data-tip="Watch with VLC or mpv through Streamlink">Open in player</button><button class="ghost" id="popVideo">Watch</button></div><div id="empty">Join any channel with the box in the tab bar. Type a name or paste a twitch.tv link.</div><div id="logwrap"><div id="find"><input id="findQ" placeholder="Find in this chat..." autocomplete="off" spellcheck="false"><span id="findN" class="muted"></span><button class="ghost" id="findX">Close</button></div><div id="log"></div><button id="jump"></button></div>
-      <div id="modbar"></div><form id="bar" style="display:none"><div id="reply"></div><input id="msg" placeholder="Send a message" autocomplete="off" maxlength="500"><span id="cnt"></span><button type="button" class="ghost ic" id="emoBtn" title="Emotes"><svg viewBox="0 0 24 24" style="font-size:1.5em"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-3.5 7.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm7 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM12 18.5a6 6 0 0 1-5.3-3.2h10.6A6 6 0 0 1 12 18.5z"/></svg></button><button id="sendBtn">Send</button></form></div></main>
+      <div id="modbar"></div><form id="bar" style="display:none"><div id="reply"></div><div id="msg" class="empty" contenteditable="true" role="textbox" spellcheck="true" data-ph="Send a message"></div><span id="cnt"></span><button type="button" class="ghost ic" id="emoBtn" title="Emotes"><svg viewBox="0 0 24 24" style="font-size:1.5em"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-3.5 7.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm7 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM12 18.5a6 6 0 0 1-5.3-3.2h10.6A6 6 0 0 1 12 18.5z"/></svg></button><button type="button" class="ghost" id="clipBtn" title="Clip the last 30 seconds of the stream">Clip</button><button id="sendBtn">Send</button></form></div></main>
   </div>
 </div>
 <div id="login"><h2 style="letter-spacing:5px;color:var(--accent)">CONNECT TWITCH</h2><p class="muted">Press Connect, open the link Twitch shows and type the code. The app never sees your password.</p><div id="codebox" style="display:none"><div id="code"></div><p><a id="link" target="_blank" rel="noopener"></a></p></div><div><button id="connect">Connect Twitch</button></div><p id="lmsg" class="muted"></p></div>
@@ -120,17 +139,19 @@
   <div class="fbar"><input id="folQ" placeholder="Search..." autocomplete="off" spellcheck="false"><label class="tgl"><input type="checkbox" id="folLive"> Show only live</label></div>
   <div class="fbar2"><button class="ghost" id="folSelLive">Select live</button><button class="ghost" id="folSelAll">Select all shown</button><button class="ghost" id="folNone">Clear</button><span class="muted" id="folInfo"></span></div>
   <div id="folList"></div><div class="ffoot"><button id="folAdd">Add selected</button></div></div></div>
-<div id="settings"><div class="box"><div class="top" id="setTop"><h2>SETTINGS</h2><button class="x" id="closeSet" title="Close (Esc)">&#10005;</button></div><div class="sbody">
-  <div class="sec"><h3>FONT</h3><div class="fonts" id="fontOpts"></div>
+<div id="settings"><div class="box"><div class="top" id="setTop"><img class="logo" src="/icon.png" alt=""><h2>SETTINGS</h2><button class="x" id="closeSet" title="Close (Esc)">&#10005;</button></div><div class="sbody"><nav id="setRail"></nav><div id="setGrip" title="Drag to resize"></div><div class="spane">
+  <div class="sec"><h3>FONT</h3><div class="dd" id="fontOpts"></div>
     <div class="row2"><label>Size</label><input type="range" id="size" min="11" max="32" step="1"><output id="sizeO"></output></div>
     <div class="row2"><label>Weight</label><input type="range" id="weight" min="100" max="900" step="100"><output id="weightO"></output></div>
     <div id="prev">Casey: the quick brown fox jumps over the lazy dog 0123456789 &mdash; <b>bold</b> <i>italic</i><br>bdpq il1 O0 &mdash; "Hello, chat!" (how's it going?)</div></div>
-  <div class="sec"><h3>CHAT</h3><label class="tgl"><input type="checkbox" id="recentHistory"> Load recent messages when I join a channel <small>(asks recent-messages.robotty.de, a community service: the channel name is sent to it)</small></label><label class="tgl"><input type="checkbox" id="compact"> Slim layout <small>(turn off for more padding everywhere)</small></label><label class="tgl"><input type="checkbox" id="showTime"> Show timestamps</label><label class="tgl"><input type="checkbox" id="mentionSound"> Play a sound when my name is mentioned</label><div class="row2" style="grid-template-columns:90px 1fr 120px"><label>Volume</label><input type="range" id="mentionVol" min="0" max="100" step="5"><span style="text-align:right"><output id="mentionVolO"></output> <button class="ghost" id="testChime">Test</button></span></div><label class="tgl"><input type="checkbox" id="mentionFlash"> Flash the channel tab until I open it</label>
-    <label class="tgl"><input type="checkbox" id="altRows"> Alternate the background of every other message <small>(easier to follow fast chat)</small></label></div>
+  <div class="sec"><h3>CHAT</h3><label class="tgl"><input type="checkbox" id="recentHistory"> Load recent messages when I join a channel</label><label class="tgl"><input type="checkbox" id="compact"> Slim layout</label><label class="tgl"><input type="checkbox" id="showTime"> Show timestamps</label><label class="tgl"><input type="checkbox" id="mentionSound"> Play a sound when my name is mentioned</label><div class="row2" style="grid-template-columns:90px 1fr 120px"><label>Volume</label><input type="range" id="mentionVol" min="0" max="100" step="5"><span style="text-align:right"><output id="mentionVolO"></output> <button class="ghost" id="testChime">Test</button></span></div><label class="tgl"><input type="checkbox" id="mentionFlash"> Flash the channel tab until I open it</label>
+    <label class="tgl"><input type="checkbox" id="altRows"> Alternate the background of every other message</label>
+    <label class="tgl"><input type="checkbox" id="liveOnly"> Show live only</label>
+    <label class="tgl"><input type="checkbox" id="showActivity"> Show chat activity</label></div>
   <div class="sec"><h3>FOLLOWED CHANNELS</h3><div class="muted">Add the channels you follow on Twitch as tabs (up to <span id="folMax">60</span> in all: Twitch limits how many chats one connection can follow).</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="folOpen">Add followed channels...</button></div>
     <label class="tgl"><input type="checkbox" id="autoLive"> When a channel I follow goes live, add it as a tab</label>
-    <label class="tgl"><input type="checkbox" id="liveSound"> Play a chime when a channel goes live <small>(your joined channels, and followed ones when the box above is on)</small></label></div>
+    <label class="tgl"><input type="checkbox" id="liveSound"> Play a chime when a channel goes live</label></div>
   <div class="sec"><h3>HIGHLIGHTS AND MUTES</h3>
     <label class="muted">Highlight words or phrases (alert like your name, separate with commas)</label><textarea id="hlWords" placeholder="casey, gg, giveaway" spellcheck="false"></textarea>
     <label class="muted">Muted users (their messages are hidden)</label><textarea id="muUsers" placeholder="nightbot, streamelements" spellcheck="false"></textarea>
@@ -138,6 +159,7 @@
     <label class="muted">Alerts (sound, flash, taskbar) per channel</label><div id="alertList" style="display:grid;gap:6px"></div></div>
   <div class="sec"><h3>THEME</h3><div id="themeBox"></div></div>
   <div class="sec"><h3>ACCOUNT</h3><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span class="muted" id="acct" style="flex:1"></span><button class="ghost" id="logout">Log out</button></div></div>
+  <div class="sec"><h3>UPDATES</h3><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><button class="ghost" id="updBtn">Check for update</button><span class="muted" id="updMsg"></span><button id="updGo" style="display:none">Open download page</button></div></div>
   <div class="sec"><h3>VIDEO PLAYER</h3><div class="muted">Watch a channel in VLC or mpv instead of the built-in player (right-click a tab, or the button in a popout). It uses Streamlink to fetch the stream: install it once with <b>winget install Streamlink.Streamlink</b>.</div><div class="row2" style="grid-template-columns:90px 1fr"><label>Watch with</label><select id="videoSource"><option value="vlc">VLC (our own window, with captions and resizing)</option><option value="twitch">Twitch's own player (log in once: Turbo and subscribers get no ads)</option></select></div><div class="muted" id="plInfo"></div>
     <div id="plInstall" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button id="plInstallBtn" style="display:none">Install Streamlink</button><a id="plDl" class="muted" style="display:none" href="https://streamlink.github.io/install.html#windows" target="_blank" rel="noopener">or download it yourself</a><button id="plInstallMpv" class="ghost" style="display:none">Install mpv (hover controls)</button></div>
     <div class="row2" style="grid-template-columns:90px 1fr"><label>Player</label><select id="playerPref"><option value="">Automatic (VLC, then mpv)</option><option value="vlc">VLC</option><option value="mpv">mpv</option></select></div>
@@ -149,10 +171,11 @@
     <div class="muted" id="twState"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="twLogin">Log in to Twitch here</button><button class="ghost" id="twLogout" style="display:none">Log out of it</button></div></div>
   <div class="sec"><h3>BACKUP</h3><div class="muted">Your channels and settings in one file (never your login). Use it to move to another PC or after a reinstall.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/api/export" download="imc-chat-backup.json"><button type="button" class="ghost">Export</button></a><button type="button" class="ghost" id="importBtn">Import</button><input type="file" id="importFile" accept=".json,application/json" style="display:none"></div></div>
   <div class="sec"><h3>CHANNEL TABS</h3><div class="layouts"><div class="opt" data-l="horizontal"><div class="s">Horizontal</div><div class="d">Tabs in a row across the top</div></div><div class="opt" data-l="vertical"><div class="s">Vertical</div><div class="d">Tabs in a list on the left, with channel pictures</div></div></div></div>
-</div></div></div>
+</div></div></div></div>
 <script>
 const $ = (id) => document.getElementById(id), esc = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const Q = new URLSearchParams(location.search), POP = (Q.get('popout') || '').toLowerCase().replace(/[^a-z0-9_]/g, ''); let watching = Q.get('watch') === '1'; if (POP) document.body.classList.add('pop');
+const SETWIN = Q.get('settings') === '1'; if (SETWIN) document.body.classList.add('setwin');   // the settings page, opened as a window of its own
 const safe = (u) => (/^https:\/\//.test(String(u || '')) ? esc(u) : '');
 const post = (p, b) => fetch('/api/' + p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b || {}) }).then((r) => r.json());
 const get = (p) => fetch('/api/' + p).then((r) => r.json());
@@ -176,32 +199,40 @@ function fixColor(c) {   // names stay readable on the chosen theme
 function applySettings(s) {
   const t = THEMES.find((x) => x.id === s.theme) || THEMES[0], r = document.documentElement.style; KEYS.forEach((k, i) => r.setProperty(k, t.v[i])); light = lum(t.v[0]) > 0.4;
   r.setProperty('--font', s.font === 'system' ? '"Segoe UI",system-ui,sans-serif' : '"' + s.font + '","Segoe UI",sans-serif'); r.setProperty('--size', s.size + 'px'); r.setProperty('--fw', s.weight);
-  document.body.classList.toggle('vertical', s.layout === 'vertical'); if (s.railWidth) document.documentElement.style.setProperty('--rail', s.railWidth + 'px'); else document.documentElement.style.removeProperty('--rail'); if (window.imcWindow) window.imcWindow.overlay(t.v[1], t.v[3]); document.body.classList.toggle('notime', !s.showTime); document.body.classList.toggle('compact', s.compact !== false); document.body.classList.toggle('alt', !!s.altRows); document.body.classList.toggle('noflash', s.mentionFlash === false); if (loaded) drawSettings();
+  document.body.classList.toggle('vertical', s.layout === 'vertical'); document.body.classList.toggle('railmin', s.layout === 'vertical' && s.railMin === true); if (s.railWidth) document.documentElement.style.setProperty('--rail', s.railWidth + 'px'); else document.documentElement.style.removeProperty('--rail'); if (window.imcWindow) window.imcWindow.overlay(t.v[1], t.v[3]); document.body.classList.toggle('notime', !s.showTime); if (s.setRail) document.documentElement.style.setProperty('--setrail', s.setRail + 'px'); document.body.classList.toggle('noact', s.showActivity === false); document.body.classList.toggle('compact', s.compact !== false); document.body.classList.toggle('alt', !!s.altRows); document.body.classList.toggle('noflash', s.mentionFlash === false); if (loaded) drawSettings();
 }
 function drawSettings() {
-  const s = S.settings; $('fontOpts').innerHTML = FONTS.map((f) => '<div class="opt' + (s.font === f.id ? ' on' : '') + '" data-f="' + esc(f.id) + '"><div class="s" style="font-family:' + (f.id === 'system' ? '\'Segoe UI\'' : '\'' + f.id + '\'') + '">' + esc(f.id === 'system' ? 'System' : f.id) + '</div><div class="d">' + esc(f.d) + '</div></div>').join('');
+  const s = S.settings, fd = $('fontOpts');
+  if (!fd.classList.contains('open')) {   // not while it is open: a redraw would lose what you typed in its search box
+    const face = (id) => (id === 'system' ? "'Segoe UI',system-ui,sans-serif" : "'" + id + "',sans-serif"), fcur = FONTS.find((f) => f.id === s.font) || { id: s.font, d: 'Installed on this PC' }, nm = (f) => (f.id === 'system' ? 'System' : f.id);
+    const row = (id, d, on) => '<div class="it' + (on ? ' on' : '') + '" data-f="' + esc(id) + '" data-n="' + esc(id.toLowerCase()) + '"><div class="s" style="font-family:' + face(id) + '">' + esc(id === 'system' ? 'System' : id) + '</div>' + (d ? '<div class="d">' + esc(d) + '</div>' : '') + '</div>';
+    fd.innerHTML = '<button type="button" data-open="1"><span style="font-family:' + face(fcur.id) + '">' + esc(nm(fcur)) + ' <span class="d">' + esc(fcur.d) + '</span></span></button><div class="list"><input class="fq" placeholder="Search fonts..." autocomplete="off" spellcheck="false">'
+      + FONTS.map((f) => row(f.id, f.d, s.font === f.id)).join('') + (sysFonts.length ? '<div class="sep">ALL FONTS ON THIS PC</div>' + sysFonts.map((n) => row(n, '', s.font === n)).join('') : '<div class="sep">Loading the fonts on this PC...</div>') + '</div>';
+  }
   $('size').value = s.size; $('sizeO').textContent = s.size + ' px'; $('weight').value = s.weight; $('weightO').textContent = WN[s.weight];
   $('themeBox').innerHTML = ['Dark', 'Mid', 'Light'].map((g) => '<div class="tg">' + g.toUpperCase() + '</div><div class="themes">' + THEMES.filter((t) => t.g === g).map((t) => '<div class="th' + (s.theme === t.id ? ' on' : '') + '" data-t="' + t.id + '"><div class="sw" style="background:' + t.v[0] + '"><i style="background:' + t.v[5] + '"></i><i style="background:' + t.v[6] + '"></i><i style="background:' + t.v[7] + '"></i><i style="background:' + t.v[3] + '"></i></div><div class="nm" style="background:' + t.v[1] + ';color:' + t.v[3] + '">' + t.name + '</div></div>').join('') + '</div>').join('');
   $('mentionSound').checked = s.mentionSound !== false; $('mentionFlash').checked = s.mentionFlash !== false; $('mentionVol').value = s.mentionVolume; $('mentionVolO').textContent = s.mentionVolume + '%'; const setList = (id, arr) => { const el = $(id); if (document.activeElement !== el) el.value = (arr || []).join(', '); };
   setList('hlWords', s.highlightWords); setList('muUsers', s.mutedUsers); setList('muWords', s.mutedWords);
   $('alertList').innerHTML = S.channels.length ? S.channels.map((c) => '<label class="tgl"><input type="checkbox" data-alert="' + esc(c.login) + '"' + ((s.mutedAlerts || []).includes(c.login) ? '' : ' checked') + '> Alerts for ' + esc(c.name) + '</label>').join('') : '<span class="muted">Join a channel first.</span>';
-  $('acct').textContent = 'Logged in as ' + S.login + '. Your channels and settings stay on this PC.'; $('autoLive').checked = !!s.autoLive; $('liveSound').checked = s.liveSound !== false; $('folMax').textContent = S.maxChannels || 60; $('recentHistory').checked = !!s.recentHistory; if (document.activeElement !== $('playerPath')) $('playerPath').value = s.playerPath || ''; $('playerPref').value = s.playerPref || ''; $('playerStyle').value = s.playerStyle || 'own'; $('ads').value = s.ads || 'skip'; $('videoSource').value = s.videoSource || 'vlc'; $('compact').checked = s.compact !== false; $('showTime').checked = s.showTime !== false; $('altRows').checked = !!s.altRows;
+  $('acct').textContent = 'Logged in as ' + S.login + '. Your channels and settings stay on this PC.'; $('autoLive').checked = !!s.autoLive; $('showActivity').checked = s.showActivity !== false; $('liveSound').checked = s.liveSound !== false; $('folMax').textContent = S.maxChannels || 60; $('recentHistory').checked = !!s.recentHistory; if (document.activeElement !== $('playerPath')) $('playerPath').value = s.playerPath || ''; $('playerPref').value = s.playerPref || ''; $('playerStyle').value = s.playerStyle || 'own'; $('ads').value = s.ads || 'skip'; $('videoSource').value = s.videoSource || 'vlc'; $('compact').checked = s.compact !== false; $('showTime').checked = s.showTime !== false; $('altRows').checked = !!s.altRows;
   document.querySelectorAll('.layouts .opt').forEach((o) => o.classList.toggle('on', o.dataset.l === s.layout));
 }
 let saveT = null; function save(b) { Object.assign(S.settings, b); applySettings(S.settings); clearTimeout(saveT); saveT = setTimeout(() => post('settings', S.settings), 250); }
 
 // ---------------------------------------------------------------- status, tabs
+let folTimer = 0;
 function drawStatus(s) {
   const first = !S; S = s; const ok = s.auth.status === 'ok';
   $('login').style.display = ok ? 'none' : 'grid'; $('app').style.display = ok ? 'flex' : 'none'; $('gear').style.display = ok ? '' : 'none'; $('who').textContent = ok ? s.login : ''; $('dash').style.display = ok ? '' : 'none';
   $('banner').style.display = ok && (s.needsModScopes || s.needsFollows) ? 'flex' : 'none';
   $('codebox').style.display = s.device ? '' : 'none'; if (s.device) { $('code').textContent = s.device.code; $('link').href = s.device.url; $('link').textContent = s.device.url; }
   $('lmsg').textContent = s.device ? 'Waiting for you to approve it on Twitch... (this page continues by itself)' : s.auth.status === 'error' ? s.auth.message : ''; $('connect').textContent = s.device ? 'Open the link again' : 'Connect Twitch';
-  loaded = true; applySettings(s.settings); drawConn();
+  loaded = true; applySettings(s.settings); drawConn(); if (ok && !SETWIN && !folTimer) { loadFollowed(); folTimer = setInterval(loadFollowed, 900000); }
   if (POP) cur = s.channels.some((c) => c.login === POP) ? POP : '';
+  else if (SETWIN) cur = '';
   else { if (first && s.settings.active && s.channels.some((c) => c.login === s.settings.active)) cur = s.settings.active;
     if (!s.channels.some((c) => c.login === cur)) cur = s.channels[0] ? s.channels[0].login : ''; }
-  drawTabs(); if (first && cur) openTab(cur); drawModbar(); drawPop();
+  drawTabs(); if (first && cur) openTab(cur); drawModbar(); drawPop(); if (first && SETWIN) { twitchState(); playerInfo(); drawSettings(); }
 }
 function drawPop() {
   if (!POP) return; const c = chan(POP);
@@ -240,17 +271,27 @@ function drawConn() {
   const state = serverDown ? 'down' : ok && !S.connected ? 'wait' : '';
   c.style.display = state ? 'inline-flex' : 'none'; c.className = state === 'down' ? 'down' : ''; c.innerHTML = state ? '<i></i>' + (state === 'down' ? 'App not responding' : 'Reconnecting') : '';
 }
+const act = {};   // channel -> when recent messages arrived, for the little activity graph on each tab
+function spark(c) {
+  const a = act[c] = (act[c] || []).filter((t) => Date.now() - t < 300000), n = Date.now(), B = 20, b = new Array(B).fill(0);
+  for (const t of a) { const i = B - 1 - Math.floor((n - t) / 15000); if (i >= 0) b[i]++; }
+  const mx = Math.max(3, ...b); return b.map((v, i) => (v ? '<rect x="' + i * 1.8 + '" y="' + (12 - Math.max(1, v / mx * 12)).toFixed(1) + '" width="1.4" height="' + Math.max(1, v / mx * 12).toFixed(1) + '"/>' : '')).join('');
+}
+function drawSparks() { document.querySelectorAll('.tab .spark').forEach((el) => { el.innerHTML = spark(el.closest('.tab').dataset.c); }); }
+let folSet = new Set();   // the channels you follow: their names get a star in chat
+async function loadFollowed() { const r = await get('followed').catch(() => null); if (r && Array.isArray(r.list)) folSet = new Set(r.list.map((f) => f.login)); }
 const chan = (l) => (S ? S.channels.find((c) => c.login === l) : null);
 function drawTabs() {
-  const tabs = S.channels.map((c) => '<div class="tab' + (c.login === cur ? ' on' : '') + (c.live ? ' live' : ' off') + (unreadN[c.login] ? ' new' : '') + (ments[c.login] ? ' ment' : '') + '" draggable="true" data-c="' + esc(c.login) + '">' + (safe(c.image) ? '<img class="av" src="' + safe(c.image) + '" alt="">' : '<span class="av"></span>') + '<span class="nm"' + (c.live ? ' data-tip="' + esc('LIVE \u00b7 ' + c.live.viewers.toLocaleString() + ' viewers' + (c.live.game ? ' \u00b7 ' + c.live.game : '') + (c.live.title ? ' - ' + c.live.title : '')) + '"' : '') + '>' + esc(c.name) + '</span>' + '<span class="dot">' + (unreadN[c.login] > 99 ? '99+' : unreadN[c.login] || '') + '</span>' + (c.mod ? '<span class="sw" data-tip="You are a moderator here">' + svg('sword') + '</span>' : '') + '<span class="pw" data-pop="' + esc(c.login) + '" data-tip="' + esc('Watch in ' + watchName()) + '">' + svg('play') + '</span><span class="x" data-x="' + esc(c.login) + '">&#10005;</span></div>').join('');
+  const liveOnly = cfgs().liveOnly === true; $('liveOnly').checked = liveOnly;   // the open channel stays visible even when offline
+  const tabs = S.channels.filter((c) => !liveOnly || c.live || c.login === cur).map((c) => '<div class="tab' + (c.login === cur ? ' on' : '') + (c.live ? ' live' : ' off') + (unreadN[c.login] ? ' new' : '') + (ments[c.login] ? ' ment' : '') + '" draggable="true" data-c="' + esc(c.login) + '">' + '<span class="avw">' + (safe(c.image) ? '<img class="av" src="' + safe(c.image) + '" alt="">' : '<span class="av"></span>') + '<span class="dot">' + (unreadN[c.login] > 99 ? '99+' : unreadN[c.login] || '') + '</span></span><span class="nm"' + (c.live ? ' data-tip="' + esc('LIVE \u00b7 ' + c.live.viewers.toLocaleString() + ' viewers' + (c.live.game ? ' \u00b7 ' + c.live.game : '') + (c.live.title ? ' - ' + c.live.title : '')) + '"' : '') + '>' + esc(c.name) + '</span>' + (SETWIN ? '' : '<svg class="spark" viewBox="0 0 36 12" data-tip="Chat activity, last 5 minutes"></svg>') + (c.mod ? '<span class="sw" data-tip="You are a moderator here">' + svg('sword') + '</span>' : '') + '<span class="pw" data-pop="' + esc(c.login) + '" data-tip="' + esc('Watch in ' + watchName()) + '">' + svg('play') + '</span><span class="x" data-x="' + esc(c.login) + '">&#10005;</span></div>').join('');
   $('tablist').innerHTML = tabs;   // the join box is not part of this list, so it keeps its focus while chat moves
-  const has = !!cur; $('empty').style.display = has ? 'none' : ''; $('logwrap').style.display = has ? 'flex' : 'none'; $('bar').style.display = has ? 'flex' : 'none'; $('msg').placeholder = has ? 'Send a message to ' + cur : '';
+  drawSparks(); const has = !!cur; $('empty').style.display = has ? 'none' : ''; $('logwrap').style.display = has ? 'flex' : 'none'; $('bar').style.display = has ? 'flex' : 'none'; $('msg').placeholder = has ? 'Send a message to ' + cur : '';
 }
 
 // ---------------------------------------------------------------- mention alert: a two-note chime made in the browser (no sound file)
 let ac = null, lastChime = 0;
 function chime(force) {
-  if (POP) return; const s = S && S.settings; if (!s || (!force && s.mentionSound === false) || (Date.now() - lastChime < 2500 && !force)) return; lastChime = Date.now();
+  if (POP || SETWIN) return; const s = S && S.settings; if (!s || (!force && s.mentionSound === false) || (Date.now() - lastChime < 2500 && !force)) return; lastChime = Date.now();
   try {
     ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume();
     const vol = Math.pow((s.mentionVolume == null ? 60 : s.mentionVolume) / 100, 2) * 0.5, t = ac.currentTime;
@@ -286,7 +327,34 @@ function frag(f, ch) {
 }
 const clock = (ts) => { const d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 function badgeImgs(m) { const B = badgeUrls[m.channel] || {}; return m.badges.map((b) => (B[b] && safe(B[b].u) ? '<img class="bd" data-tip="' + esc(B[b].t) + '" src="' + safe(B[b].u) + '" alt="">' : '')).join(''); }
-const EVNAME = { sub: 'New subscriber', resub: 'Resub', sub_gift: 'Gift sub', community_sub_gift: 'Gift subs', gift_paid_upgrade: 'Upgraded', prime_paid_upgrade: 'Upgraded', raid: 'Raid', unraid: 'Raid ended', pay_it_forward: 'Paying it forward', announcement: 'Announcement', bits_badge_tier: 'Bits badge', charity_donation: 'Charity', shared_chat_sub: 'Shared chat' };
+const EVNAME = { sub: 'New subscriber', resub: 'Resub', sub_gift: 'Gift sub', community_sub_gift: 'Gift subs', gift_paid_upgrade: 'Upgraded', prime_paid_upgrade: 'Upgraded', raid: 'Raid', unraid: 'Raid ended', pay_it_forward: 'Paying it forward', announcement: 'Announcement', bits_badge_tier: 'Bits badge', charity_donation: 'Charity', shared_chat_sub: 'Shared chat', redeem: 'Reward', hype_train: 'Hype train', poll: 'Poll', prediction: 'Prediction', ad_break: 'Ad break' };
+const CLIP_RE = /(?:clips\.twitch\.tv\/(?:embed\?clip=)?|twitch\.tv\/[A-Za-z0-9_]{2,25}\/clip\/)([A-Za-z0-9_-]{8,80})/g;
+const clipC = {};   // clip id -> its details, once fetched
+function clipCards(m) {   // a card under the message for each Twitch clip link in it (filled in when it arrives)
+  if (!m.text || m.text.indexOf('twitch.tv') < 0) return ''; const ids = []; let x; CLIP_RE.lastIndex = 0;
+  while ((x = CLIP_RE.exec(m.text)) && ids.length < 2) if (!ids.includes(x[1])) ids.push(x[1]);
+  return ids.map((id) => '<div class="clipcard" data-clip="' + esc(id) + '"><span class="muted">Loading clip...</span></div>').join('');
+}
+const mmss = (n) => Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0');
+function fillClip(el, c) {
+  if (!c || c.error) { el.remove(); return; }   // not a clip we can look up: the plain link in the message is all there is
+  el.dataset.ok = '1'; el.dataset.tip = 'Play in ' + watchName();
+  el.innerHTML = (safe(c.thumb) ? '<div class="th"><img src="' + safe(c.thumb) + '" alt=""><span class="dur">' + mmss(c.seconds) + '</span><span class="pl">' + svg('play') + '</span></div>' : '')
+    + '<div class="ci2"><div class="ct">' + esc(c.title) + '</div><div class="cm">' + esc(c.channel) + (c.game ? ' &middot; ' + esc(c.game) : '') + '</div><div class="cm">clipped by ' + esc(c.creator) + ' &middot; ' + Number(c.views).toLocaleString() + ' views' + (c.created ? ' &middot; ' + esc(ago(c.created)) + ' ago' : '') + '</div></div>';
+}
+function hydrateClips(root) {
+  (root || document).querySelectorAll('.clipcard:not([data-ok]):not([data-busy])').forEach(async (el) => {
+    const id = el.dataset.clip; el.dataset.busy = '1';
+    if (!clipC[id]) clipC[id] = get('clipinfo?id=' + encodeURIComponent(id)).catch(() => ({ error: 'x' }));
+    const c = await clipC[id]; delete el.dataset.busy; if (el.isConnected) fillClip(el, c);
+  });
+}
+async function playClip(id) {
+  const c = await clipC[id]; if (!c || c.error) return; const w = window.imcWindow, o = { clip: c.id, title: c.title, chat: c.login };
+  if ((cfgs().videoSource || 'vlc') === 'twitch' && w && w.twitchPlayer) { const r = await w.twitchPlayer(c.login, o).catch((x) => ({ error: String(x.message || x) })); if (r && r.error) toast(r.error); return; }
+  if ((cfgs().playerStyle || 'own') === 'own' && playerKind === 'vlc' && w && w.watch) { const r = await w.watch(c.login, Object.assign(o, { playerPath: cfgs().playerPath || '', ads: 'skip' })).catch((x) => ({ error: String(x.message || x) })); if (r && r.error) toast(r.error); return; }
+  toast('Starting ' + (playerName || 'the player') + '...', true); const r = await post('play', { channel: c.login, clip: c.id }).catch(() => ({ error: 'Could not reach the app' })); if (r.error) toast(r.error);
+}
 function line(m) {
   if (m.event) {
     const k = m.event, ic = k === 'announcement' ? 'announcement' : k === 'raid' ? 'raid' : /gift/.test(k) ? 'gift' : /sub/.test(k) ? 'sub' : k === 'bits_badge_tier' ? 'bits' : 'dot', head = EVNAME[k] || k.replace(/_/g, ' ');
@@ -294,25 +362,37 @@ function line(m) {
       (m.system ? '<div class="bd2">' + esc(m.system) + '</div>' : '') + (m.text ? '<div class="bd2">' + (k === 'announcement' ? '' : '<span class="who">' + esc(m.name) + ': </span>') + m.frags.map((f) => frag(f, m.channel)).join('') + '</div>' : '') + '</div></div>';
   }
   const ch = chan(m.channel), canMod = ch && ch.mod && !m.mine && !(m.badges || []).some((b) => /^(broadcaster|moderator)\//.test(b));
-  const cls = ['m', m.old && 'old', m.mention && 'ment', m.mine && 'mine', m.bits && 'cheer', m.kind === 'channel_points_highlighted' && 'hl'].filter(Boolean).join(' ');
-  return '<div class="' + cls + '" data-id="' + esc(m.id) + '" data-uid="' + esc(m.uid) + '">' + (m.reply ? '<span class="rp">&#8627; @' + esc(m.reply.name) + ': ' + esc(m.reply.text) + '</span>' : '') + '<span class="t">' + clock(m.ts) + '</span>' + (m.kind === 'user_intro' ? '<span class="tag">first message</span>' : '') + (m.bits ? '<span class="tag">' + m.bits + ' bits</span>' : '') + badgeImgs(m)
-    + '<span class="n" data-user="' + esc(m.uid) + '" style="color:' + esc(fixColor(m.color)) + '">' + esc(m.name) + '</span>: ' + m.frags.map((f) => frag(f, m.channel)).join('')
-    + '<span class="acts"><span data-reply="' + esc(m.id) + '" data-name="' + esc(m.name) + '">reply</span>' + (canMod ? '<span class="dg" data-del="' + esc(m.id) + '">delete</span><span data-to="' + esc(m.uid) + '">10m</span><span class="dg" data-ban="' + esc(m.uid) + '">ban</span>' : '') + '</span></div>';
+  const cls = ['m', m.old && 'old', m.mention && 'ment', m.mine && 'mine', m.bits && 'cheer', m.kind === 'channel_points_highlighted' && 'hl', m.kind === 'power_ups_gigantified_emote' && 'giga', m.kind === 'power_ups_message_effect' && 'fx', m.reply && 'rpl'].filter(Boolean).join(' ');
+  let body = m.frags.map((f) => frag(f, m.channel)).join(''); if (m.kind === 'power_ups_gigantified_emote') { const i = body.lastIndexOf('<img class="e"'); if (i >= 0) body = body.slice(0, i) + '<img class="e big"' + body.slice(i + 14); }   // the power-up blows the last emote up
+  const tags = (m.kind === 'user_intro' ? '<span class="tag">first message</span>' : '') + (m.kind === 'channel_points_highlighted' ? '<span class="tag">highlighted</span>' : m.kind === 'channel_points_sub_only' ? '<span class="tag">sub-only reward</span>' : m.reward ? '<span class="tag">reward</span>' : '') + (m.kind === 'power_ups_message_effect' ? '<span class="tag">power-up</span>' : m.kind === 'power_ups_gigantified_emote' ? '<span class="tag">giant emote</span>' : '') + (m.bits ? '<span class="tag">' + m.bits + ' bits</span>' : '') + (m.src ? '<span class="tag src">from ' + esc(m.src) + '</span>' : '');
+  return '<div class="' + cls + '" data-id="' + esc(m.id) + '" data-uid="' + esc(m.uid) + '">' + (m.reply ? '<span class="rp">@' + esc(m.reply.name) + ': ' + esc(m.reply.text) + '</span>' : '') + '<span class="t">' + clock(m.ts) + '</span>' + tags + badgeImgs(m)
+    + '<span class="n" data-user="' + esc(m.uid) + '" style="color:' + esc(fixColor(m.color)) + '">' + esc(m.name) + '</span>' + (!m.mine && folSet.has(m.login) ? '<span class="fs" data-tip="You follow them">&#9733;</span>' : '') + ': ' + body
+    + clipCards(m) + '<span class="acts"><span data-reply="' + esc(m.id) + '" data-name="' + esc(m.name) + '">reply</span>' + (canMod ? '<span class="dg" data-del="' + esc(m.id) + '">delete</span><span data-to="' + esc(m.uid) + '">10m</span><span class="dg" data-ban="' + esc(m.uid) + '">ban</span>' : '') + '</span></div>';
 }
-function render() { const L = $('log'), list = (msgs[cur] || []).filter((m) => !m.gone && !muted(m) && matches(m)); L.innerHTML = list.map(line).join(''); L.scrollTop = L.scrollHeight; $('findN').textContent = findQ ? list.length + ' found' : ''; }
+function render() { const L = $('log'), list = (msgs[cur] || []).filter((m) => !m.gone && !muted(m) && matches(m)); L.innerHTML = list.map(line).join(''); hydrateClips(L); L.scrollTop = L.scrollHeight; $('findN').textContent = findQ ? list.length + ' found' : ''; }
 function addMsg(m) {
   if (muted(m)) return;
   if (!m.event && !m.mine && !m.mention && hasWord(m.text, cfgs().highlightWords)) m.mention = true;   // one of your highlight words
   const loud = !!m.mention && !m.mine && !quiet(m.channel);
   if (loud) { chime(); if (!POP && !document.hasFocus() && window.imcWindow && window.imcWindow.flash) window.imcWindow.flash(); }
-  loadBadges(m.channel); loadEmotes(m.channel); const a = msgs[m.channel] = msgs[m.channel] || []; if (a.some((x) => x.id === m.id)) return; a.push(m); if (a.length > 400) a.shift();
+  loadBadges(m.channel); loadEmotes(m.channel); const a = msgs[m.channel] = msgs[m.channel] || []; if (a.some((x) => x.id === m.id)) return; a.push(m); if (a.length > 400) a.shift(); if (!m.old && !m.event) (act[m.channel] = act[m.channel] || []).push(Date.now());
   if (m.channel === cur) {
     if (!matches(m)) return;
-    const L = $('log'), stick = L.scrollHeight - L.scrollTop - L.clientHeight < 80; L.insertAdjacentHTML('beforeend', line(m)); if (loud) L.lastElementChild.classList.add('fresh'); while (L.children.length > 400) L.removeChild(L.firstChild);
+    const L = $('log'), stick = L.scrollHeight - L.scrollTop - L.clientHeight < 80; L.insertAdjacentHTML('beforeend', line(m)); hydrateClips(L.lastElementChild); if (loud) L.lastElementChild.classList.add('fresh'); while (L.children.length > 400) L.removeChild(L.firstChild);
     if (stick) L.scrollTop = L.scrollHeight; else { behind++; const j = $('jump'); j.textContent = behind + ' new message' + (behind > 1 ? 's' : '') + ' \u2193'; j.style.display = 'inline-flex'; }
   } else { unreadN[m.channel] = (unreadN[m.channel] || 0) + 1; if (loud) ments[m.channel] = true; drawTabs(); }
 }
-$('log').addEventListener('scroll', () => { const L = $('log'); if (L.scrollHeight - L.scrollTop - L.clientHeight < 80) { behind = 0; $('jump').style.display = 'none'; } });
+$('railBtn').onclick = () => save({ railMin: !document.body.classList.contains('railmin') });
+async function makeClip(login) {
+  toast('Making a clip...', true); const r = await post('clip', { channel: login }).catch(() => ({ error: 'Could not reach the app' }));
+  if (r.error) return toast(r.error); toast('Clip saved: opening the editor', true); window.open(r.edit || r.url, '_blank');
+}
+$('clipBtn').onclick = () => { if (cur) makeClip(cur); };
+$('liveOnly').onchange = (e) => { save({ liveOnly: e.target.checked }); drawTabs(); };
+setInterval(drawSparks, 10000);
+let pinned = true;  // log is at the bottom; images that load later grow it, so re-pin on load
+$('log').addEventListener('scroll', () => { const L = $('log'); pinned = L.scrollHeight - L.scrollTop - L.clientHeight < 80; if (pinned) { behind = 0; $('jump').style.display = 'none'; } });
+$('log').addEventListener('load', () => { if (pinned) { const L = $('log'); L.scrollTop = L.scrollHeight; } }, true);
 $('jump').onclick = () => { const L = $('log'); L.scrollTop = L.scrollHeight; behind = 0; $('jump').style.display = 'none'; };
 function openFind() { if (!cur) return; $('find').style.display = 'flex'; $('findQ').focus(); $('findQ').select(); }
 function closeFind() { if (getComputedStyle($('find')).display === 'none' && !findQ) return; findQ = ''; $('findQ').value = ''; $('find').style.display = 'none'; if (cur) render(); }
@@ -321,11 +401,11 @@ document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.
 async function loadEmotes(c) {
   if (!c || emoList[c]) return; emoList[c] = [];
   const r = await get('emotes?channel=' + encodeURIComponent(c)).catch(() => []); emoList[c] = Array.isArray(r) ? r : [];
-  const M = {}; for (const e of emoList[c]) if ('7bf'.includes(e.g)) M[e.n] = e.u; emoMap[c] = M; if (c === cur) { render(); if ($('emo').style.display === 'flex') drawEmo(); }
+  const M = {}; for (const e of emoList[c]) if ('7bf'.includes(e.g)) M[e.n] = e.u; emoMap[c] = M; delete emoAll[c]; if (c === cur) { drawDraft(); render(); if ($('emo').style.display === 'flex') drawEmo(); }
 }
 async function loadBadges(c) { if (c && !badgeUrls[c]) { badgeUrls[c] = {}; badgeUrls[c] = await get('badges?channel=' + encodeURIComponent(c)).catch(() => ({})); if (c === cur) render(); } }
 async function openTab(c) {
-  cur = c; unreadN[c] = 0; ments[c] = false; behind = 0; $('jump').style.display = 'none'; closeFind(); replyTo = null; $('reply').style.display = 'none'; if (!POP && S.settings.active !== c) save({ active: c }); loadBadges(c); loadEmotes(c); hideEmo();
+  cur = c; unreadN[c] = 0; ments[c] = false; behind = 0; $('jump').style.display = 'none'; closeFind(); replyTo = null; $('reply').style.display = 'none'; if (!POP && S.settings.active !== c) save({ active: c }); loadBadges(c); loadEmotes(c); hideEmo(); drawDraft();
   if (c && !msgs[c]) { msgs[c] = []; const h = await get('history?channel=' + encodeURIComponent(c)); const have = new Set(msgs[c].map((x) => x.id)); msgs[c] = h.filter((x) => !have.has(x.id)).concat(msgs[c]); } drawTabs(); render(); drawModbar(true);
 }
 
@@ -355,6 +435,7 @@ async function showCard(el) {
     + ((m.badges || []).length ? '<div class="chips">' + m.badges.map((b) => '<span class="chip">' + (B[b] && safe(B[b].u) ? '<img src="' + safe(B[b].u) + '" alt="">' : '') + esc(B[b] ? B[b].t : b.split('/')[0]) + '</span>').join('') + '</div>' : '')
     + '<div class="kv">' + (info.created ? '<b>Account</b><span>' + esc(ago(info.created)) + ' old <span class="lg">(' + esc(info.created.slice(0, 10)) + ')</span></span>' : '') + (info.kind ? '<b>Type</b><span>' + esc(info.kind) + '</span>' : '') + '<b>Channel</b><span>' + esc(ch ? ch.name : cur) + '</span></div>'
     + (info.bio ? '<div class="bio">' + esc(info.bio) + '</div>' : '')
+    + (() => { const r = (msgs[cur] || []).filter((x) => x.uid === uid && !x.event && !x.gone).slice(-6); return r.length ? '<div class="rec"><div class="lb">RECENT HERE</div>' + r.map((x) => '<div title="' + esc(x.text) + '">' + esc(x.text) + '</div>').join('') + '</div>' : ''; })()
     + (canMod ? '<div class="mods"><div class="lb">' + svg('sword') + 'MODERATE</div><button class="ghost" data-t="60">1m</button><button class="ghost" data-t="600">10m</button><button class="ghost" data-t="3600">1h</button><button class="ghost" data-t="86400">1d</button><button data-d="1">Delete msg</button><button style="background:var(--danger);color:#fff" data-b="1">Ban</button><button class="ghost" data-u="1">Unban</button></div>' : '') + '</div>';
   card.dataset.uid = uid; card.dataset.mid = m.id; place(card, r.left, r.bottom + 6 + 330 > innerHeight ? r.top - card.offsetHeight - 6 : r.bottom + 6);
   if (r.bottom + card.offsetHeight + 6 > innerHeight) card.style.top = Math.max(6, r.top - card.offsetHeight - 6) + 'px';
@@ -376,6 +457,7 @@ card.onclick = async (e) => {
   if (ok) { toast('Done'); hideCard(); }
 };
 $('log').onclick = async (e) => {
+  const cc = e.target.closest('.clipcard[data-ok]'); if (cc) return playClip(cc.dataset.clip);
   const t = e.target.dataset;
   if (t.reply) { replyTo = t.reply; $('reply').innerHTML = 'Replying to ' + esc(t.name) + '<b id="nore">cancel</b>'; $('reply').style.display = 'block'; $('msg').focus(); $('nore').onclick = () => { replyTo = null; $('reply').style.display = 'none'; }; }
   else if (t.del) { if (await modDo('delete', { messageId: t.del })) toast('Deleted'); }
@@ -406,7 +488,7 @@ $('emoQ').oninput = drawEmo;
 $('emoTabs').onclick = (e) => { const g = e.target.dataset.g; if (g) { emoTab = g; drawEmo(); } };
 $('emoGrid').onclick = (e) => {
   const n = e.target.dataset.n; if (!n) return; const m = $('msg'), a = m.selectionStart == null ? m.value.length : m.selectionStart, b = m.selectionEnd == null ? a : m.selectionEnd, pre = m.value.slice(0, a), sp = pre && !/\s$/.test(pre) ? ' ' : '';
-  m.value = pre + sp + n + ' ' + m.value.slice(b); const at = (pre + sp + n + ' ').length; m.focus(); m.setSelectionRange(at, at); useEmotes([n]); updateCnt();
+  m.value = pre + sp + n + ' ' + m.value.slice(b); const at = (pre + sp + n + ' ').length; m.focus(); m.setSelectionRange(at, at); useEmotes([n]); updateCnt(); drawDraft();
 };
 document.addEventListener('click', (e) => { if (!e.composedPath().some((n) => n.id === 'emo' || n.id === 'emoBtn')) hideEmo(); });   // the path is taken when the click happens: a tab or emote that redraws the picker is already gone from the page by now, so closest() would call it "outside"
 
@@ -441,13 +523,70 @@ $('msg').addEventListener('keydown', (e) => {
 $('connect').onclick = async () => { const r = await post('login'); if (r.error) return ($('lmsg').textContent = r.error); drawStatus(r); if (r.device) window.open(r.device.url, '_blank'); };   // the approval page opens in the default browser
 $('reconnect').onclick = $('connect').onclick; $('logout').onclick = async () => { $('settings').style.display = 'none'; drawStatus(await post('logout')); };
 $('add').onsubmit = async (e) => { e.preventDefault(); const v = $('join').value.trim(); if (!v) return; const r = await post('join', { channel: v }); if (r.error) return toast(r.error); $('join').value = ''; drawStatus(r); openTab(r.channels[r.channels.length - 1].login); };
-$('tabs').onclick = async (e) => { const pw = e.target.closest('[data-pop]'); if (pw) return playIn(pw.dataset.pop); const x = e.target.dataset.x; if (x) { drawStatus(await post('leave', { channel: x })); return openTab(cur); } const t = e.target.closest('.tab'); if (t) openTab(t.dataset.c); };
+// the play button acts on mouse-down: the list is redrawn whenever a message or status update arrives, and a redraw between press and release swallowed the click
+$('tabs').addEventListener('mousedown', (e) => { const pw = e.button === 0 && e.target.closest('[data-pop]'); if (pw) { e.preventDefault(); playIn(pw.dataset.pop); } });
+$('tabs').onclick = async (e) => { if (e.target.closest('[data-pop]')) return; const x = e.target.dataset.x; if (x) { drawStatus(await post('leave', { channel: x })); return openTab(cur); } const t = e.target.closest('.tab'); if (t) openTab(t.dataset.c); };
+$('tabs').addEventListener('wheel', (e) => { if (document.body.classList.contains('vertical') || !e.deltaY || e.shiftKey) return; const t = $('tabs'); if (t.scrollWidth <= t.clientWidth) return; t.scrollLeft += e.deltaY; e.preventDefault(); }, { passive: false });   // horizontal layout: the wheel scrolls the tab row sideways
 let dragC = ''; $('tabs').ondragstart = (e) => { const t = e.target.closest('.tab'); if (t) dragC = t.dataset.c; };
 $('tabs').ondragover = (e) => { const t = e.target.closest('.tab'); if (t && dragC) { e.preventDefault(); document.querySelectorAll('.tab.drop').forEach((x) => x.classList.remove('drop')); t.classList.add('drop'); } };
 $('tabs').ondrop = async (e) => { const t = e.target.closest('.tab'); if (t && dragC && t.dataset.c !== dragC) { e.preventDefault(); drawStatus(await post('move', { channel: dragC, to: S.channels.findIndex((c) => c.login === t.dataset.c) })); } dragC = ''; document.querySelectorAll('.tab.drop').forEach((x) => x.classList.remove('drop')); };
 const sentHist = []; let sentAt = -1, sending = false;
+const emoAll = {};   // channel -> every emote name -> its picture
+// ---------------------------------------------------------------- the message box: text, with each emote shown as its picture
+// It acts like a plain text box (value, selectionStart, setSelectionRange ...) so the rest of the page does not care: an emote counts as its name.
+const msgEl = $('msg'); let msgComposing = false, msgLast = null;
+const emoPic = () => { if (!cur) return null; return emoAll[cur] || (emoAll[cur] = emoList[cur] && emoList[cur].length ? Object.fromEntries(emoList[cur].map((e) => [e.n, e.u])) : null); };
+const nodeText = (n) => (n.nodeType === 3 ? n.nodeValue : (n.dataset && n.dataset.n) || '');
+const msgText = () => Array.from(msgEl.childNodes, nodeText).join('');
+function msgParts(v) {   // pieces of plain text, and emotes (an emote becomes a picture once a space follows it)
+  const M = emoPic(), out = [], parts = String(v).split(/(\s+)/); let buf = '';
+  parts.forEach((w, i) => { if (i % 2 === 0 && w && M && M[w] && safe(M[w]) && i + 1 < parts.length) { if (buf) out.push({ t: buf }); buf = ''; out.push({ e: w, u: M[w] }); } else buf += w; });
+  if (buf) out.push({ t: buf }); return out;
+}
+function msgDomParts() { const out = []; for (const n of msgEl.childNodes) { const e = n.dataset && n.dataset.n, t = nodeText(n); if (!t) continue; if (e) out.push({ e }); else if (out.length && out[out.length - 1].t !== undefined) out[out.length - 1].t += t; else out.push({ t }); } return out; }
+const partsKey = (a) => a.map((p) => (p.t !== undefined ? 't' + p.t : 'e' + p.e)).join('\0');
+function msgPaint(parts) {
+  const f = document.createDocumentFragment();
+  for (const p of parts) { if (p.t !== undefined) f.appendChild(document.createTextNode(p.t)); else { const i = document.createElement('img'); i.className = 'e'; i.dataset.n = p.e; i.alt = p.e; i.src = safe(p.u); i.draggable = false; i.contentEditable = 'false'; f.appendChild(i); } }
+  msgEl.replaceChildren(f);
+}
+function msgPos(node, off) {   // a place in the box -> how many characters come before it
+  let n = 0; if (node === msgEl) { for (let i = 0; i < off; i++) n += nodeText(msgEl.childNodes[i]).length; return n; }
+  let c = node; while (c && c.parentNode !== msgEl) c = c.parentNode; if (!c) return msgText().length;
+  for (let q = c.previousSibling; q; q = q.previousSibling) n += nodeText(q).length;
+  return n + (node.nodeType === 3 ? off : off ? nodeText(node).length : 0);
+}
+function msgAt(pos) {   // the other way: character count -> a place in the box
+  const k = msgEl.childNodes;
+  for (let i = 0; i < k.length; i++) { const l = nodeText(k[i]).length; if (k[i].nodeType === 3) { if (pos <= l) return [k[i], pos]; } else if (pos <= 0) return [msgEl, i]; pos -= l; }
+  return [msgEl, k.length];
+}
+function msgSel() { const s = getSelection(); if (!s.rangeCount || !msgEl.contains(s.anchorNode) || !msgEl.contains(s.focusNode)) return null; const r = s.getRangeAt(0); return [msgPos(r.startContainer, r.startOffset), msgPos(r.endContainer, r.endOffset)]; }
+function msgSetSel(a, b) { const [n1, o1] = msgAt(a), [n2, o2] = msgAt(b), r = document.createRange(); r.setStart(n1, o1); r.setEnd(n2, o2); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+const msgMark = () => msgEl.classList.toggle('empty', !msgText());
+const lastSel = () => { const s = msgSel() || msgLast, n = msgText().length; return s ? [Math.min(s[0], n), Math.min(s[1], n)] : [n, n]; };
+Object.defineProperties(msgEl, {
+  value: { get: msgText, set(v) { msgPaint(msgParts(String(v).replace(/\s*\n\s*/g, ' ').slice(0, 500))); msgMark(); msgLast = null; if (document.activeElement === msgEl) msgSetSel(1e9, 1e9); } },
+  selectionStart: { get: () => lastSel()[0] }, selectionEnd: { get: () => lastSel()[1] },
+  placeholder: { get: () => msgEl.dataset.ph || '', set(v) { msgEl.dataset.ph = v; } },
+});
+msgEl.setSelectionRange = (a, b) => msgSetSel(a, b); msgEl.select = () => msgSetSel(0, 1e9);
+msgEl.setRangeText = (t, a, b, mode) => { const v = msgText(); msgEl.value = v.slice(0, a) + t + v.slice(b); if (mode === 'end') msgSetSel(a + t.length, a + t.length); };
+function drawDraft() {   // after any change: turn finished emote names into pictures (and back), keeping the cursor where it was
+  if (msgComposing) return; const v = msgText(), sel = msgSel(), parts = msgParts(v.slice(0, 500));
+  if (v.length > 500 || partsKey(parts) !== partsKey(msgDomParts())) { msgPaint(parts); if (sel) msgSetSel(Math.min(sel[0], 500), Math.min(sel[1], 500)); }
+  msgMark();
+}
+document.addEventListener('selectionchange', () => { const s = msgSel(); if (s) msgLast = s; });
+msgEl.addEventListener('compositionstart', () => { msgComposing = true; }); msgEl.addEventListener('compositionend', () => { msgComposing = false; drawDraft(); updateCnt(); });
+msgEl.addEventListener('paste', (e) => { e.preventDefault(); const t = (e.clipboardData.getData('text/plain') || '').replace(/\s*\n\s*/g, ' '); if (t) document.execCommand('insertText', false, t); });
+msgEl.addEventListener('drop', (e) => e.preventDefault());
+msgEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); if (!e.shiftKey) $('bar').requestSubmit(); }   // one line: Enter sends
+  else if ((e.ctrlKey || e.metaKey) && /^[biu]$/i.test(e.key)) e.preventDefault();   // no bold or italics
+});
 function updateCnt() { const n = 500 - $('msg').value.length; $('cnt').textContent = n <= 100 ? String(n) : ''; $('cnt').className = n < 20 ? 'low' : ''; }
-$('msg').addEventListener('input', updateCnt);
+$('msg').addEventListener('input', () => { updateCnt(); drawDraft(); });
 $('msg').addEventListener('keydown', (e) => {   // Up and Down bring back what you sent
   if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return; const m = $('msg');
   if (e.key === 'ArrowUp') { if ((m.value && sentAt === -1) || !sentHist.length) return; sentAt = sentAt === -1 ? sentHist.length - 1 : Math.max(0, sentAt - 1); } else { if (sentAt === -1) return; sentAt++; }
@@ -458,15 +597,16 @@ $('bar').onsubmit = async (e) => {
   const r = await post('send', { channel: cur, text: t, replyTo }).catch(() => ({ error: 'Could not reach the app' })); sending = false; $('sendBtn').disabled = false; $('sendBtn').textContent = 'Send';
   if (r.error) return toast(r.error);   // the text stays in the box so nothing is lost
   sentHist.push(t); if (sentHist.length > 30) sentHist.shift(); sentAt = -1; const names = new Set((emoList[cur] || []).map((x) => x.n)), used = t.split(/\s+/).filter((w) => names.has(w)); if (used.length) useEmotes(used);
-  $('msg').value = ''; updateCnt(); replyTo = null; $('reply').style.display = 'none'; hideEmo();
+  $('msg').value = ''; updateCnt(); drawDraft(); replyTo = null; $('reply').style.display = 'none'; hideEmo();
 };
 function centerSettings() { const b = document.querySelector('#settings .box'); b.style.left = Math.max(0, (innerWidth - b.offsetWidth) / 2) + 'px'; b.style.top = Math.max(0, (innerHeight - b.offsetHeight) / 2) + 'px'; }
-$('gear').onclick = () => { twitchState(); playerInfo(); drawSettings(); $('settings').style.display = 'block'; centerSettings(); };
-$('setTop').onmousedown = (e) => {   // drag the window by its title bar
+$('gear').onclick = () => { if (!SETWIN && window.open('/?settings=1', 'imc-settings', 'popup,width=760,height=840')) return; twitchState(); playerInfo(); drawSettings(); $('settings').style.display = 'block'; centerSettings(); };
+$('setTop').onmousedown = (e) => {
+  if (SETWIN) return;   // drag the window by its title bar
   if (e.target.closest('button')) return; const b = document.querySelector('#settings .box'), dx = e.clientX - b.offsetLeft, dy = e.clientY - b.offsetTop;
   const mv = (m) => { b.style.left = Math.min(innerWidth - 80, Math.max(-b.offsetWidth + 80, m.clientX - dx)) + 'px'; b.style.top = Math.min(innerHeight - 40, Math.max(0, m.clientY - dy)) + 'px'; };
   const up = () => { removeEventListener('mousemove', mv); removeEventListener('mouseup', up); }; addEventListener('mousemove', mv); addEventListener('mouseup', up); e.preventDefault();
-}; $('closeSet').onclick = () => { $('settings').style.display = 'none'; }; 
+}; $('closeSet').onclick = () => { if (SETWIN) window.close(); else $('settings').style.display = 'none'; }; 
 $('mentionSound').onchange = (e) => save({ mentionSound: e.target.checked }); $('mentionFlash').onchange = (e) => save({ mentionFlash: e.target.checked });
 $('mentionVol').oninput = (e) => { save({ mentionVolume: Number(e.target.value) }); $('mentionVolO').textContent = e.target.value + '%'; }; $('mentionVol').onchange = () => chime(true); $('testChime').onclick = () => chime(true);
 const parts = (v, fix) => String(v).split(/[,\n]+/).map((x) => fix(x.trim())).filter(Boolean);
@@ -525,17 +665,46 @@ $('importFile').onchange = async (e) => {
   const r = await post('import', d); if (r.error) return toast(r.error); drawStatus(r); toast('Imported: ' + r.channels.length + ' channels and your settings', true);
 };
 $('compact').onchange = (e) => { save({ compact: e.target.checked }); const L = $('log'); L.scrollTop = L.scrollHeight; };
-$('showTime').onchange = (e) => save({ showTime: e.target.checked }); $('altRows').onchange = (e) => save({ altRows: e.target.checked });
-$('fontOpts').onclick = (e) => { const o = e.target.closest('.opt'); if (o) save({ font: o.dataset.f }); };
+$('showActivity').onchange = (e) => save({ showActivity: e.target.checked }); $('showTime').onchange = (e) => save({ showTime: e.target.checked }); $('altRows').onchange = (e) => save({ altRows: e.target.checked });
+// the settings page: a rail of categories on the left, each holding its own sections
+const SETCATS = [['Appearance', ['FONT', 'THEME', 'CHANNEL TABS']], ['Chat', ['CHAT', 'HIGHLIGHTS AND MUTES', 'FOLLOWED CHANNELS']], ['Video', ['VIDEO PLAYER', "TWITCH'S OWN PLAYER"]], ['Account', ['ACCOUNT', 'UPDATES', 'BACKUP']]];
+let setCatNow = 0;
+function setCat(i) {
+  setCatNow = i; document.querySelectorAll('#settings .spane > .sec').forEach((sec) => sec.classList.toggle('cat-off', Number(sec.dataset.cat) !== i));
+  document.querySelectorAll('#setRail button').forEach((b, k) => b.classList.toggle('on', k === i)); $('settings').querySelector('.spane').scrollTop = 0;
+}
+(() => {
+  const pane = document.querySelector('#settings .spane'), secs = {}; pane.querySelectorAll(':scope > .sec').forEach((sec) => { const h = sec.querySelector('h3'); if (h) secs[h.textContent.trim()] = sec; });
+  SETCATS.forEach(([, names], i) => names.forEach((n) => { if (secs[n]) { secs[n].dataset.cat = i; pane.appendChild(secs[n]); } }));
+  $('setRail').innerHTML = SETCATS.map(([n], i) => '<button type="button" data-cat="' + i + '">' + n + '</button>').join(''); $('setRail').onclick = (e) => { const b = e.target.closest('button'); if (b) setCat(Number(b.dataset.cat)); }; setCat(0);
+})();
+$('setGrip').onmousedown = (e) => {   // drag the edge of the category list; the width is remembered
+  const g = $('setGrip'), rail = $('setRail'); g.classList.add('drag'); e.preventDefault();
+  const mv = (m) => { document.documentElement.style.setProperty('--setrail', Math.min(320, Math.max(110, m.clientX - rail.getBoundingClientRect().left)) + 'px'); };
+  const up = () => { removeEventListener('mousemove', mv); removeEventListener('mouseup', up); g.classList.remove('drag'); save({ setRail: Math.round(rail.getBoundingClientRect().width) }); }; addEventListener('mousemove', mv); addEventListener('mouseup', up);
+};
+$('setGrip').ondblclick = () => { document.documentElement.style.removeProperty('--setrail'); save({ setRail: 150 }); };
+$('updBtn').onclick = async () => {
+  const b = $('updBtn'), m = $('updMsg'), go = $('updGo'); b.disabled = true; m.textContent = 'Checking...'; go.style.display = 'none';
+  const r = await get('update').catch(() => ({ error: 'Could not reach the app' })); b.disabled = false;
+  if (r.error) { m.textContent = (r.current ? 'You have ' + r.current + '. ' : '') + r.error; return; }
+  if (r.newer) { m.textContent = 'Version ' + r.latest + ' is available (you have ' + r.current + ')'; go.style.display = ''; go.onclick = () => window.open(r.url, '_blank'); } else m.textContent = 'You are up to date (' + r.current + ')';
+};
+let sysFonts = [];   // every font installed on the PC, asked for once
+get('fonts').then((l) => { if (Array.isArray(l)) { sysFonts = l.filter((n) => !FONTS.some((f) => f.id === n)); if (S) drawSettings(); } }).catch(() => {});
+$('fontOpts').addEventListener('input', (e) => { if (!e.target.classList.contains('fq')) return; const q = e.target.value.trim().toLowerCase(); $('fontOpts').querySelectorAll('.it').forEach((it) => { it.style.display = !q || it.dataset.n.includes(q) ? '' : 'none'; }); });
+$('fontOpts').onclick = (e) => { const o = e.target.closest('.it'); if (o) { $('fontOpts').classList.remove('open'); save({ font: o.dataset.f }); } else if (e.target.closest('[data-open]')) $('fontOpts').classList.toggle('open'); };
+document.addEventListener('mousedown', (e) => { if (!e.target.closest('#fontOpts')) $('fontOpts').classList.remove('open'); });
 $('size').oninput = (e) => save({ size: Number(e.target.value) }); $('weight').oninput = (e) => save({ weight: Number(e.target.value) });
 $('themeBox').onclick = (e) => { const o = e.target.closest('.th'); if (o) save({ theme: o.dataset.t }); };
 document.querySelector('.layouts').onclick = (e) => { const o = e.target.closest('.opt'); if (o) { save({ layout: o.dataset.l }); drawTabs(); } };
 $('rail').onmousedown = (e) => {   // drag the edge of the channel list
   const r = $('rail'), tabs = $('tabs'); r.classList.add('drag'); e.preventDefault();
-  const mv = (m) => { document.documentElement.style.setProperty('--rail', Math.min(520, Math.max(120, m.clientX - tabs.getBoundingClientRect().left)) + 'px'); };
-  const up = () => { removeEventListener('mousemove', mv); removeEventListener('mouseup', up); r.classList.remove('drag'); save({ railWidth: Math.round(tabs.getBoundingClientRect().width) }); }; addEventListener('mousemove', mv); addEventListener('mouseup', up);
+  let shut = document.body.classList.contains('railmin');
+  const mv = (m) => { const w = m.clientX - tabs.getBoundingClientRect().left; shut = w < 100; document.body.classList.toggle('railmin', shut); if (!shut) document.documentElement.style.setProperty('--rail', Math.min(520, Math.max(120, w)) + 'px'); };   // dragged past the minimum: slide shut to avatars
+  const up = () => { removeEventListener('mousemove', mv); removeEventListener('mouseup', up); r.classList.remove('drag'); save(shut ? { railMin: true } : { railMin: false, railWidth: Math.round(tabs.getBoundingClientRect().width) }); }; addEventListener('mousemove', mv); addEventListener('mouseup', up);
 };
-$('rail').ondblclick = () => save({ railWidth: 0 });
+$('rail').ondblclick = () => save({ railWidth: 0, railMin: false });
 const ctxEl = $('ctx'); let ctxItems = [];
 function showCtx(x, y, items) { ctxItems = items; ctxEl.innerHTML = items.map((it, i) => (it === '-' ? '<hr>' : '<div class="ci' + (it.danger ? ' dg' : '') + '" data-i="' + i + '">' + esc(it.label) + '</div>')).join(''); place(ctxEl, x, y); }
 const hideCtx = () => { ctxEl.style.display = 'none'; };
@@ -557,28 +726,29 @@ function rowMenu(e, row) {
 }
 function tabMenu(e, login) {
   const c = chan(login), q = quiet(login); if (!c) return;
-  showCtx(e.clientX, e.clientY, [{ label: 'Watch in ' + watchName(), fn: () => playIn(login) }, { label: 'Popout with the stream', fn: () => popOut(login, true) }, { label: 'Popout chat only', fn: () => popOut(login, false) }, { label: 'Open on twitch.tv', fn: () => window.open('https://www.twitch.tv/' + login, '_blank') },
+  showCtx(e.clientX, e.clientY, [{ label: 'Watch in ' + watchName(), fn: () => playIn(login) }, { label: 'Popout with the stream', fn: () => popOut(login, true) }, { label: 'Popout chat only', fn: () => popOut(login, false) }, { label: 'Open on twitch.tv', fn: () => window.open('https://www.twitch.tv/' + login, '_blank') }, { label: 'Clip the last 30 seconds', fn: () => makeClip(login) },
     { label: q ? 'Turn alerts on' : 'Mute alerts for ' + c.name, fn: () => { const set = new Set(S.settings.mutedAlerts || []); if (q) set.delete(login); else set.add(login); save({ mutedAlerts: Array.from(set) }); toast(q ? 'Alerts on for ' + c.name : 'Alerts muted for ' + c.name, true); } },
     '-', { label: 'Leave ' + c.name, danger: true, fn: async () => { drawStatus(await post('leave', { channel: login })); openTab(cur); } }]);
 }
 function textMenu(e, el) {
-  const sel = el.selectionStart !== el.selectionEnd; showCtx(e.clientX, e.clientY, [{ label: 'Cut', fn: () => { if (sel) { copy(el.value.slice(el.selectionStart, el.selectionEnd)); el.setRangeText('', el.selectionStart, el.selectionEnd, 'end'); el.dispatchEvent(new Event('input')); } } },
-    { label: 'Copy', fn: () => { if (sel) copy(el.value.slice(el.selectionStart, el.selectionEnd)); } }, { label: 'Paste', fn: () => navigator.clipboard.readText().then((t) => { el.setRangeText(t, el.selectionStart, el.selectionEnd, 'end'); el.dispatchEvent(new Event('input')); el.focus(); }, () => toast('Could not paste')) }, { label: 'Select all', fn: () => { el.focus(); el.select(); } }]);
+  const a = el.selectionStart, b = el.selectionEnd, sel = a !== b;   // taken now: clicking the menu can move the cursor
+  showCtx(e.clientX, e.clientY, [{ label: 'Cut', fn: () => { if (sel) { copy(el.value.slice(a, b)); el.setRangeText('', a, b, 'end'); el.dispatchEvent(new Event('input')); } } },
+    { label: 'Copy', fn: () => { if (sel) copy(el.value.slice(a, b)); } }, { label: 'Paste', fn: () => navigator.clipboard.readText().then((t) => { el.setRangeText(t.replace(/\s*\n\s*/g, ' '), a, b, 'end'); el.dispatchEvent(new Event('input')); el.focus(); }, () => toast('Could not paste')) }, { label: 'Select all', fn: () => { el.focus(); el.select(); } }]);
 }
 document.addEventListener('contextmenu', (e) => {
-  const emo = e.target.closest('#emoGrid img'), tab = e.target.closest('.tab'), row = e.target.closest('#log > .m, #log > .ev'), box = e.target.closest('input:not([type=range]):not([type=checkbox]):not([type=file]), textarea');
+  const emo = e.target.closest('#emoGrid img'), tab = e.target.closest('.tab'), row = e.target.closest('#log > .m, #log > .ev'), box = e.target.closest('input:not([type=range]):not([type=checkbox]):not([type=file]), textarea, #msg');
   if (emo) { e.preventDefault(); toggleFav(emo.dataset.n); } else if (tab) { e.preventDefault(); tabMenu(e, tab.dataset.c); } else if (row) { e.preventDefault(); rowMenu(e, row); } else if (box) { e.preventDefault(); textMenu(e, box); }
 });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { folClose(); hideCtx(); $('settings').style.display = 'none'; hideCard(); hideEmo(); closeFind(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (SETWIN && !document.querySelector('#fol[style*=block]')) return window.close(); folClose(); hideCtx(); $('settings').style.display = 'none'; hideCard(); hideEmo(); closeFind(); } });
 const es = new EventSource('/events');
 playerInfo(); get('health').then((h) => { if (h.version) $('ver').textContent = 'v' + h.version; }).catch(() => {});
-es.addEventListener('wentlive', (e) => { if (POP) return; const d = JSON.parse(e.data); liveChime(); toast(d.name + ' went live' + (d.viewers ? ' (' + d.viewers.toLocaleString() + ' watching)' : '') + (d.added ? ' and was added' : ''), true); if (d.added && !cur) openTab(d.login); });
+es.addEventListener('wentlive', (e) => { if (POP || SETWIN) return; const d = JSON.parse(e.data); liveChime(); toast(d.name + ' went live' + (d.viewers ? ' (' + d.viewers.toLocaleString() + ' watching)' : '') + (d.added ? ' and was added' : ''), true); if (d.added && !cur) openTab(d.login); });
 es.onopen = () => { serverDown = false; drawConn(); }; es.onerror = () => { serverDown = true; drawConn(); };
 es.addEventListener('status', (e) => drawStatus(JSON.parse(e.data)));
 es.addEventListener('backfill', async (e) => {   // older messages arrived for a channel
   const c = JSON.parse(e.data).channel; if (!msgs[c]) return; const h = await get('history?channel=' + encodeURIComponent(c)), have = new Set(msgs[c].map((x) => x.id));
   msgs[c] = h.filter((x) => !have.has(x.id)).concat(msgs[c]).sort((a, b) => a.ts - b.ts); if (c === cur) render();
 });
-es.addEventListener('chat', (e) => addMsg(JSON.parse(e.data)));
+es.addEventListener('chat', (e) => { if (!SETWIN) addMsg(JSON.parse(e.data)); });
 es.addEventListener('chatmod', (e) => { const m = JSON.parse(e.data), a = msgs[m.channel] || []; if (m.type === 'clear') msgs[m.channel] = []; else for (const x of a) if (m.type === 'delete' ? x.id === m.id : x.uid === m.uid) x.gone = true; if (m.channel === cur) render(); });
 </script></body></html>

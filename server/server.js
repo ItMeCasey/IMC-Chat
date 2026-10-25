@@ -12,6 +12,22 @@ fs.mkdirSync(DATA, { recursive: true });
 const cfg = (() => { try { return JSON.parse(fs.readFileSync(path.join(DATA, 'config.json'), 'utf8')); } catch (e) { return {}; } })();
 const clientId = process.env.IMC_CLIENT_ID || cfg.clientId || JSON.parse(fs.readFileSync(path.join(__dirname, 'default-client.json'), 'utf8')).clientId;
 const VERSION = process.env.IMC_VERSION || (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'app', 'package.json'), 'utf8')).version; } catch (e) { return ''; } })();
+/** every font family installed on this PC (Windows asks .NET; the answer is kept) */
+let fontCache = null;
+const installedFonts = () => fontCache ? Promise.resolve(fontCache) : new Promise((resolve) => {
+  if (process.platform !== 'win32') return resolve([]);
+  require('node:child_process').execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName System.Drawing; (New-Object System.Drawing.Text.InstalledFontCollection).Families | ForEach-Object { $_.Name }"], { windowsHide: true, timeout: 20000, maxBuffer: 4e6 },
+    (err, out) => { const list = err ? [] : Array.from(new Set(String(out).split(/\r?\n/).map((x) => x.trim()).filter((x) => x && x.length <= 80 && !/^IMC /.test(x)))).sort((a, b) => a.localeCompare(b)); if (list.length) fontCache = list; resolve(list); });
+});
+const UPDATE_REPO = 'ItMeCasey/IMC-Chat';
+const newer = (a, b) => { const x = String(a).replace(/^v/i, '').split('.').map(Number), y = String(b).replace(/^v/i, '').split('.').map(Number); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d > 0; } return false; };   // is a later than b
+/** the newest release on GitHub, and whether it is later than this version (it only looks: nothing is downloaded) */
+async function checkUpdate() {
+  const r = await fetch('https://api.github.com/repos/' + UPDATE_REPO + '/releases/latest', { headers: { 'User-Agent': 'IMC-Chat', Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(10000) });
+  if (r.status === 404) return { current: VERSION, error: 'No release has been published yet' }; if (!r.ok) return { current: VERSION, error: 'GitHub answered ' + r.status };
+  const d = await r.json(), latest = String(d.tag_name || '').replace(/^v/i, ''), exe = (d.assets || []).find((a) => /\.exe$/i.test(a.name || ''));
+  return { current: VERSION, latest, newer: !!latest && !!VERSION && newer(latest, VERSION), url: /^https:\/\/github\.com\//.test(d.html_url || '') ? d.html_url : 'https://github.com/' + UPDATE_REPO + '/releases', file: exe ? exe.name : '', notes: String(d.body || '').slice(0, 600) };
+}
 const log = (...a) => { const line = new Date().toISOString() + ' ' + a.join(' '); console.log(line); };
 
 const clients = new Set();
@@ -38,6 +54,9 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/export') { res.writeHead(200, { 'Content-Type': 'application/json', 'Content-Disposition': 'attachment; filename="imc-chat-backup.json"', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(twitch.exportData(), null, 2)); }
     if (p === '/api/emotes') return json(res, 200, await twitch.emotes(new URL(req.url, 'http://localhost').searchParams.get('channel')).catch((e) => ({ error: e.message })));
     if (p === '/api/user') return json(res, 200, await twitch.userInfo(new URL(req.url, 'http://localhost').searchParams.get('id')).catch((e) => ({ error: e.message })));
+    if (p === '/api/fonts') return json(res, 200, await installedFonts());
+    if (p === '/api/update') return json(res, 200, await checkUpdate().catch((e) => ({ current: VERSION, error: 'Could not reach GitHub' })));
+    if (p === '/api/clipinfo') return json(res, 200, await twitch.clipInfo(new URL(req.url, 'http://localhost').searchParams.get('id')).catch((e) => ({ error: e.message })));
     if (p === '/api/history') return json(res, 200, twitch.history(new URL(req.url, 'http://localhost').searchParams.get('channel')));
     if (req.method === 'POST' && p.startsWith('/api/')) {
       if ((req.headers['content-type'] || '').indexOf('application/json') < 0) return json(res, 415, { error: 'JSON only' });
@@ -49,11 +68,12 @@ const server = http.createServer(async (req, res) => {
         if (p === '/api/leave') return json(res, 200, await twitch.leave(b.channel));
         if (p === '/api/addchannels') { const r = await twitch.addLogins(Array.isArray(b.logins) ? b.logins.slice(0, 200) : []); return json(res, 200, Object.assign({ status: twitch.status() }, r)); }
         if (p === '/api/import') return json(res, 200, await twitch.importData(b));
-        if (p === '/api/play') return json(res, 200, await player.play(b.channel, twitch.status().settings.playerPath, { pref: twitch.status().settings.playerPref, style: twitch.status().settings.playerStyle }));
+        if (p === '/api/play') return json(res, 200, await player.play(b.channel, twitch.status().settings.playerPath, { pref: twitch.status().settings.playerPref, style: twitch.status().settings.playerStyle, clip: b.clip }));
         if (p === '/api/streamlink') return json(res, 200, await player.install(b.what));
         if (p === '/api/playerinfo') return json(res, 200, player.info(twitch.status().settings.playerPath, twitch.status().settings.playerPref));
         if (p === '/api/settings') return json(res, 200, twitch.configure(b));
         if (p === '/api/move') return json(res, 200, twitch.move(b.channel, b.to));
+        if (p === '/api/clip') return json(res, 200, await twitch.clip(b.channel));
         if (p === '/api/mod') return json(res, 200, await twitch.mod(b.channel, b.action, b));
         if (p === '/api/send') return json(res, 200, await twitch.send(b.channel, b.text, b.replyTo));
         if (p === '/api/restart') { json(res, 200, { ok: true }); return setTimeout(() => process.exit(75), 200); }

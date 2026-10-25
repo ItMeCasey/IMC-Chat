@@ -41,8 +41,8 @@ module.exports = function createVlcWindows(o) {
   /** how many closed-caption tracks VLC found inside the stream (it only sees them once the video is decoding) */
   const captionTracks = (st) => { const cats = (st && st.information && st.information.category) || {}; return Object.keys(cats).filter((k) => /^subtitle$/i.test(String((cats[k] || {}).Type || ''))).length; };
   /** the qualities Streamlink can offer for a channel (it asks Twitch once) */
-  const listQualities = (sl, login) => new Promise((resolve) => {
-    let out = ''; let c; try { c = spawn(sl, ['--json', 'https://www.twitch.tv/' + login], { windowsHide: true, shell: false }); } catch (e) { return resolve([]); }
+  const listQualities = (sl, target) => new Promise((resolve) => {
+    let out = ''; let c; try { c = spawn(sl, ['--json', target], { windowsHide: true, shell: false }); } catch (e) { return resolve([]); }
     const t = setTimeout(() => { try { c.kill(); } catch (e) { /* gone */ } resolve([]); }, 15000);
     c.stdout.on('data', (d) => { out += d; }); c.on('error', () => { clearTimeout(t); resolve([]); });
     c.on('exit', () => { clearTimeout(t); try { const names = Object.keys(JSON.parse(out).streams || {}); resolve(QUALITIES.filter((q) => names.includes(q))); } catch (e) { resolve([]); } });
@@ -50,18 +50,20 @@ module.exports = function createVlcWindows(o) {
   const killTree = (pid) => { if (pid) { try { spawnSync('taskkill', ['/pid', String(pid), '/T', '/F'], { windowsHide: true }); } catch (e) { /* gone */ } } };
 
   async function watch(channel, opt) {
-    const login = String(channel || '').toLowerCase(); if (!/^[a-z0-9_]{3,25}$/.test(login)) throw new Error('Unknown channel');
+    const clipId = opt && /^[A-Za-z0-9_-]{8,80}$/.test(String(opt.clip || '')) ? opt.clip : '';   // a clip plays in the same window as a stream, under a made-up name of its own
+    const login = clipId ? 'clip_' + crypto.createHash('md5').update(clipId).digest('hex').slice(0, 12) : String(channel || '').toLowerCase(); if (!clipId && !/^[a-z0-9_]{3,25}$/.test(login)) throw new Error('Unknown channel');
+    const target = clipId ? 'https://clips.twitch.tv/' + clipId : 'https://www.twitch.tv/' + login;
     const have = wins.get(login); if (have && !have.host.isDestroyed()) { if (have.host.isMinimized()) have.host.restore(); have.host.show(); have.host.focus(); return { ok: true, player: 'VLC', again: true }; }
     const found = o.locate(opt && opt.playerPath, 'vlc'); if (!found.streamlink) throw new Error('Streamlink is not installed. Press Install Streamlink in Settings.');
     if (!found.player || found.player.kind !== 'vlc') throw new Error('VLC was not found. Install VLC (videolan.org), or choose another window style in Settings.');
     const port = await freePort(), rcPort = await freePort(), pw = crypto.randomBytes(9).toString('hex'), web = { preload: o.preload, contextIsolation: true, sandbox: true };
-    const host = new BrowserWindow({ width: 960, height: 540, useContentSize: true, minWidth: 320, minHeight: 200, backgroundColor: '#000000', title: '#' + login + ' - IMC-Chat', icon: o.icon, autoHideMenuBar: true, show: false, titleBarStyle: 'hidden', titleBarOverlay: { color: '#1A2020', symbolColor: '#E2DAC2', height: HEAD }, webPreferences: web });   // the title strip is the page's own, themed like the chat
+    const host = new BrowserWindow({ width: 960, height: 540, useContentSize: true, minWidth: 320, minHeight: 200, backgroundColor: '#000000', title: (clipId ? String((opt && opt.title) || 'Clip').slice(0, 80) : '#' + login) + ' - IMC-Chat', icon: o.icon, autoHideMenuBar: true, show: false, titleBarStyle: 'hidden', titleBarOverlay: { color: '#1A2020', symbolColor: '#E2DAC2', height: HEAD }, webPreferences: web });   // the title strip is the page's own, themed like the chat
     const video = new BrowserWindow({ parent: host, frame: false, show: false, focusable: false, skipTaskbar: true, resizable: false, movable: false, minimizable: false, maximizable: false, hasShadow: false, backgroundColor: '#000000' });
     // VLC's own window swallows the mouse, so an almost invisible window sits over the picture to catch clicks: a click gives the player window the keyboard,
     // a double click maximises or restores it (it never takes focus itself, so it stays under the controls)
     const hit = new BrowserWindow({ parent: video, frame: false, transparent: true, backgroundColor: '#03000000', show: false, focusable: false, skipTaskbar: true, resizable: false, movable: false, minimizable: false, maximizable: false, hasShadow: false, webPreferences: web });
     const ctl = new BrowserWindow({ parent: video, frame: false, transparent: true, backgroundColor: '#00000000', show: false, skipTaskbar: true, resizable: false, movable: false, minimizable: false, maximizable: false, hasShadow: false, webPreferences: web });
-    const rec = { login, host, video, hit, ctl, head: HEAD, cc: 0, rc: rcPort, ads: (opt && opt.ads) === 'show' ? 'show' : 'skip', adMuted: false, hls: '', lagMs: 6000, adSeen: 0, port, pw, bar: true, menu: 0, shown: false, quality: (opt && opt.quality) || 'best', qualities: [], proc: null, ended: '', closing: false, vol: opt && Number.isFinite(opt.volume) ? opt.volume : 100, last: { x: -1, y: -1 }, moved: Date.now() };
+    const rec = { login, chat: clipId ? String((opt && opt.chat) || '') : login, host, video, hit, ctl, head: HEAD, cc: 0, rc: rcPort, ads: !clipId && (opt && opt.ads) === 'show' ? 'show' : 'skip', adMuted: false, hls: '', lagMs: 6000, adSeen: 0, port, pw, bar: true, menu: 0, shown: false, quality: (opt && opt.quality) || 'best', qualities: [], proc: null, ended: '', closing: false, vol: opt && Number.isFinite(opt.volume) ? opt.volume : 100, last: { x: -1, y: -1 }, moved: Date.now() };
     wins.set(login, rec);
     const gone = () => host.isDestroyed() || video.isDestroyed() || hit.isDestroyed() || ctl.isDestroyed();
     const showVideo = () => { if (!video.isDestroyed()) video.showInactive(); if (!hit.isDestroyed()) hit.showInactive(); };
@@ -81,7 +83,7 @@ module.exports = function createVlcWindows(o) {
       rec.ad = null; rec.adMuted = false; rec.hls = ''; rec.cc = 0;
       if (rec.ads === 'show') return startRaw(vlcArgs);   // the stream as Twitch sends it, ads included; we mute VLC while an ad plays
       const pa = vlcArgs.join(' ');
-      let out = ''; const c = spawn(found.streamlink, ['--player', found.player.path, '--player-args=' + pa, '--title', '{author} - {title}', 'https://www.twitch.tv/' + login, rec.quality], { windowsHide: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
+      let out = ''; const c = spawn(found.streamlink, ['--player', found.player.path, '--player-args=' + pa, '--title', '{author} - {title}', target, rec.quality], { windowsHide: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
       rec.proc = c;
       const grab = (d) => {
         const t = String(d); if (out.length < 4000) out += t;
@@ -98,7 +100,7 @@ module.exports = function createVlcWindows(o) {
     };
     /** "show ads, muted": Streamlink only finds the stream's address; VLC plays it itself, ad breaks and all */
     const startRaw = (vlcArgs) => {
-      let urlOut = '', errOut = ''; const f = spawn(found.streamlink, ['--stream-url', 'https://www.twitch.tv/' + login, rec.quality], { windowsHide: true, shell: false });
+      let urlOut = '', errOut = ''; const f = spawn(found.streamlink, ['--stream-url', target, rec.quality], { windowsHide: true, shell: false });
       rec.proc = f; f.stdout.on('data', (d) => { urlOut += d; }); f.stderr.on('data', (d) => { if (errOut.length < 2000) errOut += d; });
       const fail = (why) => { if (rec.proc !== f || rec.closing) return; rec.ended = why; if (!gone()) { hideVideo(); showControls(false); if (!rec.shown) reveal(); } send({ type: 'state', ended: rec.ended }); };
       f.on('error', (e) => fail('Could not start Streamlink: ' + e.message));
@@ -123,10 +125,12 @@ module.exports = function createVlcWindows(o) {
       if (rec.shown || gone()) return; rec.shown = true;
       if (size) {   // as wide as 960 css px, or the screen allows, with the picture's own proportions
         const wa = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea, w = Math.round(Math.min(960, wa.width * 0.8, (wa.height * 0.8) * (size.w / size.h))), h = Math.round(w * size.h / size.w);
-        host.setContentSize(Math.max(320, w) + 2 * EDGE, Math.max(200, h) + HEAD + EDGE);
+        const sb = o.bounds && o.bounds(), cw = sb ? Math.min(Math.max(320, sb.width - 2 * EDGE), wa.width) : Math.max(320, w);   // the width it had last time, if it was moved or resized
+        host.setContentSize(cw + 2 * EDGE, Math.round(cw * size.h / size.w) + HEAD + EDGE);
       }
       rec.ratio = size ? size.w / size.h : 16 / 9;   // resizing keeps the picture's proportions
-      host.center(); host.show(); place(); if (!rec.ended) { showVideo(); showControls(true); }
+      const at = o.bounds && o.bounds(); if (at) host.setPosition(at.x, at.y); else host.center();   // where it was last time, else the middle of the screen
+      if (o.keep) o.keep(host); host.show(); place(); if (!rec.ended) { showVideo(); showControls(true); }
     };
     ['resize', 'move', 'maximize', 'unmaximize', 'enter-full-screen', 'leave-full-screen'].forEach((e) => host.on(e, place));
     // you can resize the window freely, but the picture keeps its own proportions (the title strip and the thin margins are not part of it)
@@ -157,7 +161,7 @@ module.exports = function createVlcWindows(o) {
     hit.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent('<body style="margin:0;background:rgba(0,0,0,0.012);height:100vh;cursor:default"></body><script>document.addEventListener("mousedown",()=>window.imcPlayer&&imcPlayer.cmd({a:"focus"}));document.addEventListener("dblclick",()=>window.imcPlayer&&imcPlayer.cmd({a:"max"}));</script>'));
     await video.loadURL('data:text/html;charset=utf-8,<body style="background:%23000;margin:0"></body>');
     host.loadURL(o.url() + 'player.html?channel=' + encodeURIComponent(login)); ctl.loadURL(o.url() + 'player-controls.html?channel=' + encodeURIComponent(login));
-    start(); listQualities(found.streamlink, login).then((q) => { rec.qualities = q; });
+    start(); listQualities(found.streamlink, target).then((q) => { rec.qualities = q; });
     rec.restart = (q) => { rec.quality = q; start(); }; rec.place = place;
     return { ok: true, player: 'VLC' };
   }
@@ -183,7 +187,7 @@ module.exports = function createVlcWindows(o) {
         const cur = /\|\s*(-?\d+) - [^\n]*\*\s*$/m.exec(list), at = cur && Number(cur[1]) >= 0 ? ids.indexOf(Number(cur[1])) : -1, next = at + 1 < ids.length ? ids[at + 1] : -1;
         await rcCall(rec.rc, 'strack ' + next); rec.cc = next < 0 ? 0 : ids.indexOf(next) + 1; return null;
       }
-      case 'chat': if (o.openChat) o.openChat(rec.login); return null;
+      case 'chat': if (o.openChat && rec.chat) o.openChat(rec.chat); return null;
       case 'retry': rec.restart(rec.quality); return null;
       case 'close': rec.host.close(); return null;
       default: return null;

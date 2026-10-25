@@ -11,7 +11,7 @@
   header { flex: none; height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 0 0 16px; padding-right: calc(100vw - env(titlebar-area-width, calc(100vw - 138px))); background: var(--panel); position: relative; -webkit-app-region: drag; }
   header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: linear-gradient(90deg,var(--accent) 0 30%,var(--accent2) 30% 55%,var(--danger) 55% 75%,var(--accent2) 75% 90%,var(--text) 90%); }
   body.full header { display: none; }
-  #ch { font-weight: 800; letter-spacing: 3px; white-space: nowrap; } #info { color: var(--muted); font-size: .8em; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #ch { font-family: "IMC Sans", sans-serif; font-weight: 400; letter-spacing: 3px; white-space: nowrap; } #info { color: var(--muted); font-size: .8em; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* shown only while the video is not: starting up, offline, or ended. The video and the controls are windows of their own above this one. */
   #stage { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; letter-spacing: 2px; color: var(--muted); background: var(--bg); }
   #stage b { display: block; color: var(--text); font-size: 1.3em; margin-bottom: 10px; letter-spacing: 4px; }

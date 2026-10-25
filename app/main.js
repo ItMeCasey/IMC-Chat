@@ -1,6 +1,6 @@
 'use strict';
 /** IMC-Chat: the desktop app. Runs the local chat server in the background, shows the chat window, lives in the tray. */
-const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, session } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, session, screen } = require('electron');
 const fs = require('node:fs'), path = require('node:path');
 const createSupervisor = require('./supervisor.js');
 const createVlcWindows = require('./vlcwindow.js');
@@ -50,18 +50,27 @@ ipcMain.on('overlay', (e, o) => {
   const hex = /^#[0-9a-fA-F]{6}$/; if (!win || !o || !hex.test(o.color) || !hex.test(o.symbolColor)) return;
   try { win.setTitleBarOverlay({ color: o.color, symbolColor: o.symbolColor, height: 40 }); } catch (err) { /* not supported */ }
 });
+// where the player and the chat popouts were last put: restored next time, unless that spot is no longer on a screen
+const onScreen = (b) => !!b && screen.getAllDisplays().some((d) => { const a = d.workArea; return b.x < a.x + a.width - 50 && b.x + b.width > a.x + 50 && b.y < a.y + a.height - 50 && b.y + b.height > a.y + 50; });
+const savedBounds = (key) => { const b = settings.bounds && settings.bounds[key]; return b && onScreen(b) ? b : null; };
+function keepBounds(w, key) {
+  let t = null; const save = () => { if (w.isDestroyed() || w.isMinimized() || w.isMaximized() || w.isFullScreen()) return; settings.bounds = Object.assign(settings.bounds || {}, { [key]: w.getNormalBounds() }); saveSettings(); };
+  const later = () => { clearTimeout(t); t = setTimeout(save, 600); }; w.on('move', later); w.on('resize', later); w.on('close', save);
+}
+let pendingKey = null, pendingSet = false, settingsWin = null; app.on('browser-window-created', (e, w) => { if (pendingKey) { const k = pendingKey; pendingKey = null; keepBounds(w, k); if (pendingSet) { pendingSet = false; settingsWin = w; w.on('closed', () => { settingsWin = null; }); } } });
 // links open in the browser; a popout (this app's own page with ?popout=) opens as its own window, with the stream beside the chat if you asked to watch
 app.on('web-contents-created', (e, wc) => {
   if (wc.getType() !== 'window') return;   // the Twitch player frame is not a window of its own
   wc.setWindowOpenHandler(({ url: u }) => {
-    if (u.startsWith(url() + '?popout=')) { const watch = /[?&]watch=1/.test(u); return { action: 'allow', overrideBrowserWindowOptions: { width: watch ? 1180 : 480, height: 760, minWidth: 360, minHeight: 360, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png') } }; }
+    if (u.startsWith(url() + '?popout=')) { const watch = /[?&]watch=1/.test(u), key = watch ? 'chatWatch' : 'chat'; pendingKey = key; return { action: 'allow', overrideBrowserWindowOptions: Object.assign({ width: watch ? 1180 : 480, height: 760 }, savedBounds(key), { minWidth: 360, minHeight: 360, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png') }) }; }
+    if (u.startsWith(url() + '?settings=1') || u.startsWith(url() + '/?settings=1')) { if (settingsWin && !settingsWin.isDestroyed()) { settingsWin.show(); settingsWin.focus(); return { action: 'deny' }; } pendingKey = 'settings'; pendingSet = true; return { action: 'allow', overrideBrowserWindowOptions: Object.assign({ width: 760, height: 840 }, savedBounds('settings'), { minWidth: 420, minHeight: 320, title: 'Settings - IMC-Chat', frame: false, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png') }) }; }
     if (/^https?:\/\//.test(u)) shell.openExternal(u); return { action: 'deny' };
   });
   wc.on('will-navigate', (ev, u) => { if (!u.startsWith(url()) && !u.startsWith('data:')) { ev.preventDefault(); if (/^https?:\/\//.test(u)) shell.openExternal(u); } });
 });
 // the player window: VLC drawn inside our own resizable window, with our own controls
 let vlcWindows = null;
-function chatPopout(login) { const w = new BrowserWindow({ width: 480, height: 760, minWidth: 360, minHeight: 360, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png') }); w.loadURL(url() + '?popout=' + encodeURIComponent(login)); }
+function chatPopout(login) { const w = new BrowserWindow(Object.assign({ width: 480, height: 760 }, savedBounds('chat'), { minWidth: 360, minHeight: 360, autoHideMenuBar: true, backgroundColor: '#222A2A', icon: icon('icon.png') })); keepBounds(w, 'chat'); w.loadURL(url() + '?popout=' + encodeURIComponent(login)); }
 // Twitch's own player in a window of ours. It has a browser profile of its own (kept between runs), so you log in to Twitch once, in that window:
 // Turbo or a subscription then means no ads. The app never sees the login: it only shows Twitch's pages and can tell whether the login cookie is there.
 const TWITCH_PARTITION = 'persist:imc-twitch', twitchHost = (u) => { try { const h = new URL(u).hostname; return h === 'twitch.tv' || h.endsWith('.twitch.tv') || h.endsWith('.ttvnw.net') || h.endsWith('.jtvnw.net'); } catch (e) { return false; } };
@@ -72,7 +81,9 @@ function twitchWindow(opts, first) {
   w.loadURL(first); return w;
 }
 const twitchSession = () => session.fromPartition(TWITCH_PARTITION);
-ipcMain.handle('twitch:player', (e, login) => {
+ipcMain.handle('twitch:player', (e, login, opt) => {
+  const clip = opt && /^[A-Za-z0-9_-]{8,80}$/.test(String(opt.clip || '')) ? opt.clip : '';
+  if (clip) { twitchWindow({ width: 1100, height: 640, minWidth: 420, minHeight: 260, title: String(opt.title || 'Clip').slice(0, 80) + ' - Twitch' }, 'https://clips.twitch.tv/embed?clip=' + encodeURIComponent(clip) + '&parent=twitch.tv&autoplay=true&muted=false'); return { ok: true }; }
   const c = String(login || '').toLowerCase(); if (!/^[a-z0-9_]{3,25}$/.test(c)) return { error: 'Unknown channel' };
   twitchWindow({ width: 1100, height: 640, minWidth: 420, minHeight: 260, title: '#' + c + ' - Twitch' }, 'https://player.twitch.tv/?channel=' + c + '&parent=twitch.tv&muted=false'); return { ok: true };
 });
@@ -80,8 +91,8 @@ ipcMain.handle('twitch:login', () => { twitchWindow({ width: 560, height: 800, t
 ipcMain.handle('twitch:status', async () => { try { return { loggedIn: (await twitchSession().cookies.get({ name: 'auth-token' })).length > 0 }; } catch (err) { return { loggedIn: false }; } });
 ipcMain.handle('twitch:logout', async () => { try { await twitchSession().clearStorageData(); return { ok: true }; } catch (err) { return { error: err.message }; } });
 ipcMain.handle('player:watch', async (e, login, opt) => {
-  vlcWindows = vlcWindows || createVlcWindows({ url, icon: icon('icon.png'), preload: path.join(__dirname, 'player-preload.js'), log, openChat: chatPopout, locate: require(path.join(SERVER_DIR, 'player.js'))({}).locate });
-  try { return await vlcWindows.watch(login, opt && { playerPath: String(opt.playerPath || ''), quality: 'best', ads: opt.ads === 'show' ? 'show' : 'skip' }); } catch (err) { return { error: err.message }; }
+  vlcWindows = vlcWindows || createVlcWindows({ url, icon: icon('icon.png'), preload: path.join(__dirname, 'player-preload.js'), log, openChat: chatPopout, bounds: () => savedBounds('player'), keep: (w) => keepBounds(w, 'player'), locate: require(path.join(SERVER_DIR, 'player.js'))({}).locate });
+  try { return await vlcWindows.watch(login, opt && { playerPath: String(opt.playerPath || ''), quality: 'best', ads: opt.ads === 'show' ? 'show' : 'skip', clip: String(opt.clip || ''), title: String(opt.title || ''), chat: String(opt.chat || '') }); } catch (err) { return { error: err.message }; }
 });
 ipcMain.on('flash', () => { if (win && !win.isFocused()) win.flashFrame(true); });   // a mention while the window is in the background: the taskbar button flashes
 app.on('second-instance', openWindow);

@@ -55,14 +55,14 @@ module.exports = function createPlayer(ctx) {
 
   /** start the stream in the player; resolves as soon as it is running, or with the reason it was not (offline, not installed) */
   function play(channel, chosen, opt) {
-    opt = opt || {}; const login = String(channel || '').toLowerCase(); if (!/^[a-z0-9_]{3,25}$/.test(login)) return Promise.reject(new Error('Unknown channel'));
+    opt = opt || {}; const login = String(channel || '').toLowerCase(), clip = /^[A-Za-z0-9_-]{8,80}$/.test(String(opt.clip || '')) ? opt.clip : ''; if (!clip && !/^[a-z0-9_]{3,25}$/.test(login)) return Promise.reject(new Error('Unknown channel'));
     const sl = streamlink(); if (!sl) return Promise.reject(new Error('Streamlink is not installed. Press Install Streamlink in Settings, or run: winget install Streamlink.Streamlink'));
     const pl = playerFor(chosen, opt.pref); if (!pl) return Promise.reject(new Error('No video player found. Install VLC (videolan.org) or mpv, or choose a player in Settings.'));
     const style = opt.style || 'chromeless', styled = (style === 'chromeless' || (style === 'own' && pl.kind === 'mpv')) && STYLE_ARGS[pl.kind];   // 'own' is the window IMC-Chat draws itself (VLC only); here it means VLC's normal window, or mpv without a frame
     return new Promise((resolve, reject) => {
       let out = '', done = false, c; const finish = (fn, v) => { if (!done) { done = true; clearTimeout(t); fn(v); } };
       const args = ['--player', pl.path].concat(styled ? ['--player-args=' + STYLE_ARGS[pl.kind]] : [],   // one argument with an equals sign: a value starting with dashes is not mistaken for an option
-         ['--title', '{author} - {title}', 'https://www.twitch.tv/' + login, 'best']);
+         ['--title', '{author} - {title}', (clip ? 'https://clips.twitch.tv/' + clip : 'https://www.twitch.tv/' + login), 'best']);
       try { c = spawn(sl, args, { windowsHide: true, shell: false, detached: true, stdio: ['ignore', 'pipe', 'pipe'] }); } catch (e) { return reject(new Error('Could not start Streamlink: ' + e.message)); }
       const grab = (d) => { if (out.length < 4000) out += String(d); }; if (c.stdout) c.stdout.on('data', grab); if (c.stderr) c.stderr.on('data', grab);
       c.on('error', (e) => finish(reject, new Error('Could not start Streamlink: ' + e.message)));
