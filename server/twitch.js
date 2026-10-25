@@ -9,7 +9,7 @@ const path = require('node:path');
 const CHAT_SCOPES = ['user:read:chat', 'user:write:chat'];
 const MOD_SCOPES = ['user:read:moderated_channels', 'moderator:manage:banned_users', 'moderator:manage:chat_messages', 'moderator:manage:chat_settings', 'moderator:read:chat_settings'];
 const EMOTE_SCOPE = 'user:read:emotes';
-const FOLLOW_SCOPE = 'user:read:follows', MAX_CHANNELS = 60, SUB_BUDGET = 300, EXTRA_SUBS = 14;   // 5 chat subscriptions per channel, and Twitch allows 300 on one connection
+const FOLLOW_SCOPE = 'user:read:follows', MAX_CHANNELS = 100, SUB_BUDGET = 300, EXTRA_SUBS = 14;   // Twitch allows 300 subscriptions on one connection: every channel needs 2 (messages, notices), the moderation events go to as many as fit
 const EVENT_GROUPS = ['subs', 'gifts', 'forward', 'raids', 'announce', 'bitsbadge', 'charity', 'sharedsubs', 'redeem', 'hype', 'poll', 'prediction', 'ads'];   // the kinds of chat event that can be hidden (the page maps each to its notice types)
 const OWN_SCOPES = ['channel:read:redemptions', 'channel:read:hype_train', 'channel:read:polls', 'channel:read:predictions', 'channel:read:ads'];   // only the broadcaster can read these, so they only work in your own channel
 const CLIP_SCOPE = 'clips:edit';
@@ -243,6 +243,9 @@ module.exports = function createTwitch(ctx) {
         emit('wentlive', { login, name: info.name || login, viewers: info.viewers, game: info.game, added });
       }
     }
+    else if (settings.autoLive) {   // the first look after the app starts: followed channels that are already live are added too
+      const want = Array.from(liveNow.keys()).filter((l) => !channels.some((c) => c.login === l)); if (want.length) await addLogins(want).catch(() => null);
+    }
     prevLive = new Set(liveNow.keys()); justJoined.clear();
     if (!channels.length && !prevLive.size) return;
     const same = next.size === liveMap.size && Array.from(next).every(([k, v]) => JSON.stringify(liveMap.get(k)) === JSON.stringify(v)); liveMap.clear(); next.forEach((v, k) => liveMap.set(k, v)); if (!same) changed();
@@ -326,7 +329,13 @@ module.exports = function createTwitch(ctx) {
     }
     if (r.ok && r.json.data && r.json.data[0]) subs.set(k, r.json.data[0].id); else log('subscription', type, 'refused:', (r.json && r.json.message) || r.status);
   }
+  /** make room for n more subscriptions on the connection by dropping the moderation events of the channels at the end of the list (their messages and notices stay) */
+  async function freeSubs(n) {
+    const mod = Array.from(subs.keys()).filter((k) => /^channel\.chat\.(message_delete|clear_user_messages|clear)\|/.test(k)).reverse();
+    for (const k of mod) { if (SUB_BUDGET - 2 - subs.size >= n) break; const id = subs.get(k); subs.delete(k); await helix('DELETE', '/eventsub/subscriptions?id=' + id).catch(() => {}); }
+  }
   async function subscribeChannel(c) {
+    await freeSubs(5);
     const cond = { broadcaster_user_id: c.id, user_id: tokens.user_id };
     // Twitch allows 300 subscriptions on one connection: your own channel's extras and whispers are kept room for, every channel gets its messages and notices,
     // and the moderation events (deletes, clears) go to as many channels as are left

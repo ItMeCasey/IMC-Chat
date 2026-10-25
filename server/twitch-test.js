@@ -109,7 +109,7 @@ const ev = (name) => events.filter((e) => e[0] === name);
   assert.equal(T.status().needsFollows, false);
   // a backup or a list never goes past the limit
   const fresh5 = fs.mkdtempSync(path.join(os.tmpdir(), 'imc-cap-')); fs.writeFileSync(path.join(fresh5, 'tokens.json'), JSON.stringify({ access_token: 'a', refresh_token: 'r', expires_at: Date.now() + 1e7, user_id: '99', login: 'mememe', scopes: ALL }));
-  const T5 = createTwitch({ dir: fresh5, clientId: 'cid', fetch: fake, WebSocket: FakeWS }); const cap = await T5.addLogins(Array.from({ length: 70 }, (_, i) => 'u' + (i + 1))); assert.equal(cap.added, 60); assert.equal(cap.full, true); assert.equal(T5.status().channels.length, 60); assert.equal(T5.status().maxChannels, 60);
+  const T5 = createTwitch({ dir: fresh5, clientId: 'cid', fetch: fake, WebSocket: FakeWS }); const cap = await T5.addLogins(Array.from({ length: 110 }, (_, i) => 'u' + (i + 1))); assert.equal(cap.added, 100); assert.equal(cap.full, true); assert.equal(T5.status().channels.length, 100); assert.equal(T5.status().maxChannels, 100);
   // backup and restore
   const bk = T.exportData(); assert.equal(bk.app, 'IMC-Chat'); assert.ok(!JSON.stringify(bk).includes('access_token'), 'never the login'); assert.deepEqual(bk.channels.sort(), ['alice', 'bobby', 'mememe']);
   const fresh = fs.mkdtempSync(path.join(os.tmpdir(), 'imc-new-')); fs.writeFileSync(path.join(fresh, 'tokens.json'), JSON.stringify({ access_token: 'a', refresh_token: 'r', expires_at: Date.now() + 1e7, user_id: '99', login: 'mememe', scopes: ALL }));
