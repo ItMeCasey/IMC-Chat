@@ -7,11 +7,19 @@
   * { box-sizing: border-box; margin: 0; }
   html, body { height: 100%; overflow: hidden; background: transparent; color: var(--text); font-family: var(--font); user-select: none; }
   /* floats over the video: a soft dark fade at the bottom edge, with the controls on it */
-  #bar { height: 100%; display: flex; align-items: flex-end; gap: 6px; padding: 0 12px 12px; background: linear-gradient(to top, color-mix(in srgb, var(--panel) 94%, transparent), color-mix(in srgb, var(--panel) 62%, transparent) 55%, transparent); border-bottom: 3px solid var(--accent); }
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 76px; display: flex; align-items: flex-end; gap: 6px; padding: 0 12px 12px; background: linear-gradient(to top, color-mix(in srgb, var(--panel) 94%, transparent), color-mix(in srgb, var(--panel) 62%, transparent) 55%, transparent); border-bottom: 3px solid var(--accent); }
   button { font: inherit; font-weight: 700; letter-spacing: 1px; font-size: 12px; height: 38px; min-width: 38px; padding: 0 10px; border: 0; cursor: pointer; background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; }
   button:hover { background: color-mix(in srgb, var(--text) 18%, transparent); } button.on { color: var(--accent2); } svg { width: 21px; height: 21px; fill: currentColor; }
   #name { font-weight: 800; letter-spacing: 2px; margin: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 38px; line-height: 38px; } #state { color: var(--muted); font-size: 12px; letter-spacing: 1px; margin-right: auto; white-space: nowrap; height: 38px; line-height: 38px; }
   input[type=range] { width: 110px; height: 38px; accent-color: var(--accent); } #quality { min-width: 64px; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+  /* quality drop-down: opens upward from the bar (the controls window grows to make room), same angular look as the rest */
+  #quality::after { content: ""; border: 4px solid transparent; border-top-color: currentColor; margin: 5px 0 0 7px; } #quality.open { color: var(--accent2); background: color-mix(in srgb, var(--text) 14%, transparent); } #quality.open::after { border-top-color: transparent; border-bottom-color: currentColor; margin: -5px 0 0 7px; }
+  #qmenu { display: none; position: absolute; bottom: 70px; width: 190px; max-height: calc(100vh - 76px); overflow-y: auto; padding: 4px 0; background: color-mix(in srgb, var(--panel) 97%, transparent); border-top: 3px solid var(--accent); box-shadow: 0 10px 28px rgba(0,0,0,.6), 0 0 0 1px color-mix(in srgb, var(--text) 12%, transparent); }
+  #qmenu button { width: 100%; height: 34px; justify-content: flex-start; gap: 10px; padding: 0 14px 0 12px; font-size: 13px; letter-spacing: 1.5px; text-align: left; }
+  #qmenu button::before { content: ""; width: 6px; height: 6px; flex: none; }
+  #qmenu button.cur { color: var(--accent2); } #qmenu button.cur::before { background: var(--accent2); }
+  #qmenu button:focus { outline: 0; background: color-mix(in srgb, var(--text) 18%, transparent); }
+  #qmenu .tag { margin-left: auto; color: var(--muted); font-size: 11px; letter-spacing: 1px; font-weight: 600; } #qmenu .cur .tag { color: color-mix(in srgb, var(--accent2) 70%, var(--muted)); }
 </style></head>
 <body>
 <div id="bar">
@@ -19,13 +27,14 @@
   <button id="mute" title="Mute (M)"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.500 4.500 0 0 0 2.500-4z"/></svg></button>
   <input type="range" id="vol" min="0" max="100" step="1" title="Volume">
   <span id="name"></span><span id="state"></span>
-  <button id="quality" title="Quality: click for the next, Shift+click for the previous" style="display:none"></button>
+  <button id="quality" title="Quality" style="display:none"></button>
   <button id="cc" title="Closed captions: click for the next caption track, again to turn them off" style="display:none">CC</button>
   <button id="chat" title="Open the chat"><svg viewBox="0 0 24 24"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-4 4V5a1 1 0 0 1 1-1z"/></svg></button>
   <button id="top" title="Keep on top"><svg viewBox="0 0 24 24"><path d="M16 3v2l-1 1v5l2 3v2h-4v5l-1 1-1-1v-5H7v-2l2-3V6L8 5V3z"/></svg></button>
   <button id="full" title="Fullscreen (F)"><svg viewBox="0 0 24 24"><path d="M5 5h5v2H7v3H5zm9 0h5v5h-2V7h-3zM5 14h2v3h3v2H5zm12 0h2v5h-5v-2h3z"/></svg></button>
   <button id="close" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
 </div>
+<div id="qmenu" role="listbox" aria-label="Quality"></div>
 <script>
 const $ = (id) => document.getElementById(id), P = window.imcPlayer; let last = {}, prevVol = 60, userVol = 0;
 const PAUSE = 'M6 5h4v14H6zm8 0h4v14h-4z', PLAY = 'M8 5v14l11-7z', send = (a, x) => (P ? P.cmd(Object.assign({ a }, x || {})) : null);
@@ -33,9 +42,26 @@ $('cc').onclick = () => send('cc', { tracks: last.cc || 0 });
 $('pp').onclick = () => send('pause'); $('chat').onclick = () => send('chat'); $('top').onclick = () => send('top'); $('full').onclick = () => send('full'); $('close').onclick = () => send('close');
 $('vol').oninput = (e) => { userVol = Date.now(); send('volume', { v: Number(e.target.value) }); };
 $('mute').onclick = () => { const v = Number($('vol').value); if (v > 0) { prevVol = v; $('vol').value = 0; send('volume', { v: 0 }); } else { $('vol').value = prevVol; send('volume', { v: prevVol }); } userVol = Date.now(); };
-$('quality').onclick = (e) => { const qs = last.qualities || []; if (qs.length < 2) return; const i = qs.indexOf(last.quality), n = qs[(i + (e.shiftKey ? -1 : 1) + qs.length) % qs.length]; last.quality = n; label(n); send('quality', { q: n }); };
-const label = (q) => { $('quality').textContent = q === 'best' ? 'Auto' : q === 'audio_only' ? 'Audio' : String(q).replace(/p60$/, 'p'); };
-document.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); send('pause'); } else if (e.key.toLowerCase() === 'f') send('full'); else if (e.key.toLowerCase() === 'm') $('mute').click(); else if (e.key === 'Escape' && last.full) send('full'); });
+const label = (q) => { $('quality').firstChild ? ($('quality').firstChild.nodeValue = short(q)) : $('quality').append(short(q)); };
+const short = (q) => (q === 'best' ? 'Auto' : q === 'audio_only' ? 'Audio' : String(q).replace(/p60$/, 'p'));
+const parts = (q) => { if (q === 'best') return ['Auto', 'best']; if (q === 'audio_only') return ['Audio only', '']; const m = /^(\d+)p(60)?$/.exec(q); return m ? [m[1] + 'p', m[2] ? '60 fps' : ''] : [String(q), '']; };
+let menuOpen = false;
+function closeMenu() { if (!menuOpen) return; menuOpen = false; $('qmenu').style.display = 'none'; $('quality').classList.remove('open'); send('menu', { h: 0 }); }
+function choose(q) { last.quality = q; label(q); send('quality', { q }); closeMenu(); }
+function openMenu() {
+  const qs = last.qualities || []; if (qs.length < 2) return; const m = $('qmenu'); m.innerHTML = '';
+  for (const q of qs) { const [a, b] = parts(q), el = document.createElement('button'), n = document.createElement('span'), t = document.createElement('span'); el.className = q === last.quality ? 'cur' : ''; n.textContent = a; t.className = 'tag'; t.textContent = b; el.append(n, t); el.onclick = () => choose(q); m.append(el); }
+  menuOpen = true; $('quality').classList.add('open'); send('menu', { h: Math.min(420, qs.length * 34 + 15) });   // the window grows first, then the menu appears in the new room
+  m.style.right = Math.max(4, innerWidth - $('quality').getBoundingClientRect().right) + 'px';
+  setTimeout(() => { if (!menuOpen) return; m.style.display = 'block'; (m.querySelector('.cur') || m.firstChild).focus(); }, 70);
+}
+$('quality').onclick = () => (menuOpen ? closeMenu() : openMenu());
+document.addEventListener('mousedown', (e) => { if (menuOpen && !e.target.closest('#qmenu, #quality')) closeMenu(); }); window.addEventListener('blur', closeMenu);
+document.addEventListener('keydown', (e) => {
+  if (menuOpen) { const bs = Array.from($('qmenu').children), i = bs.indexOf(document.activeElement);
+    if (e.key === 'Escape') { e.preventDefault(); closeMenu(); } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length].focus(); }
+    return; }   // Enter and Space press the highlighted choice
+  if (e.code === 'Space') { e.preventDefault(); send('pause'); } else if (e.key.toLowerCase() === 'f') send('full'); else if (e.key.toLowerCase() === 'm') $('mute').click(); else if (e.key === 'Escape' && last.full) send('full'); });
 watchTheme(() => {});
 const NAMES = { starting: 'Starting', playing: 'Live', paused: 'Paused', stopped: 'Stopped', ended: 'Ended' };
 if (P) P.on((d) => {

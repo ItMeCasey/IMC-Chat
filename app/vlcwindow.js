@@ -14,7 +14,7 @@ const crypto = require('node:crypto');
 const net = require('node:net');
 const { parseAds, adLeft } = require('./hls-ads.js');
 
-const BAR = 76, HEAD = 40, EDGE = 8, IDLE_MS = 3000, QUALITIES = ['best', '1080p60', '720p60', '720p', '480p', '360p', '160p', 'audio_only'];
+const BAR = 76, HEAD = 40, EDGE = 8, IDLE_MS = 3000, QUALITIES = ['best', '2160p60', '2160p', '1440p60', '1440p', '1080p60', '1080p', '720p60', '720p', '480p', '360p', '160p', 'audio_only'];
 
 module.exports = function createVlcWindows(o) {
   const wins = new Map();   // channel -> record
@@ -61,7 +61,7 @@ module.exports = function createVlcWindows(o) {
     // a double click maximises or restores it (it never takes focus itself, so it stays under the controls)
     const hit = new BrowserWindow({ parent: video, frame: false, transparent: true, backgroundColor: '#03000000', show: false, focusable: false, skipTaskbar: true, resizable: false, movable: false, minimizable: false, maximizable: false, hasShadow: false, webPreferences: web });
     const ctl = new BrowserWindow({ parent: video, frame: false, transparent: true, backgroundColor: '#00000000', show: false, skipTaskbar: true, resizable: false, movable: false, minimizable: false, maximizable: false, hasShadow: false, webPreferences: web });
-    const rec = { login, host, video, hit, ctl, head: HEAD, cc: 0, rc: rcPort, ads: (opt && opt.ads) === 'show' ? 'show' : 'skip', adMuted: false, hls: '', lagMs: 6000, adSeen: 0, port, pw, bar: true, shown: false, quality: (opt && opt.quality) || 'best', qualities: [], proc: null, ended: '', closing: false, vol: opt && Number.isFinite(opt.volume) ? opt.volume : 100, last: { x: -1, y: -1 }, moved: Date.now() };
+    const rec = { login, host, video, hit, ctl, head: HEAD, cc: 0, rc: rcPort, ads: (opt && opt.ads) === 'show' ? 'show' : 'skip', adMuted: false, hls: '', lagMs: 6000, adSeen: 0, port, pw, bar: true, menu: 0, shown: false, quality: (opt && opt.quality) || 'best', qualities: [], proc: null, ended: '', closing: false, vol: opt && Number.isFinite(opt.volume) ? opt.volume : 100, last: { x: -1, y: -1 }, moved: Date.now() };
     wins.set(login, rec);
     const gone = () => host.isDestroyed() || video.isDestroyed() || hit.isDestroyed() || ctl.isDestroyed();
     const showVideo = () => { if (!video.isDestroyed()) video.showInactive(); if (!hit.isDestroyed()) hit.showInactive(); };
@@ -69,8 +69,8 @@ module.exports = function createVlcWindows(o) {
     const place = () => {   // the video covers the whole content area; the controls float along its bottom edge
       if (gone()) return; const cb = host.getContentBounds(), head = host.isFullScreen() ? 0 : HEAD, vh = Math.max(40, cb.height - head);
       const edge = host.isFullScreen() || host.isMaximized() ? 0 : EDGE, vw = Math.max(40, cb.width - 2 * edge), vv = Math.max(40, vh - edge);   // a thin black margin keeps the window's edges free, so they can be grabbed to resize
-      video.setBounds({ x: cb.x + edge, y: cb.y + head, width: vw, height: vv }); hit.setBounds({ x: cb.x + edge, y: cb.y + head, width: vw, height: Math.max(40, vv - BAR) });   // the catcher stops above the control strip, so it never covers the buttons
-      ctl.setBounds({ x: cb.x + edge, y: cb.y + head + Math.max(0, vv - BAR), width: vw, height: Math.min(BAR, vv) });
+      video.setBounds({ x: cb.x + edge, y: cb.y + head, width: vw, height: vv }); hit.setBounds({ x: cb.x + edge, y: cb.y + head, width: vw, height: Math.max(40, vv - BAR - rec.menu) });   // the catcher stops above the control strip (and above an open quality menu), so it never covers the buttons
+      const ch = Math.min(BAR + rec.menu, vv); ctl.setBounds({ x: cb.x + edge, y: cb.y + head + vv - ch, width: vw, height: ch });   // an open quality menu grows the controls window upward
     };
     const showControls = (on) => { if (gone()) return; if (on && rec.shown && !rec.ended && !host.isMinimized()) ctl.showInactive(); else ctl.hide(); };
     const send = (d) => { for (const w of [host, ctl]) if (!w.isDestroyed()) w.webContents.send('player:event', d); };
@@ -144,7 +144,7 @@ module.exports = function createVlcWindows(o) {
     const timer = setInterval(async () => {   // the controls follow the mouse; VLC's state goes to the controls; the first picture size sizes the window
       if (gone()) return; const pt = screen.getCursorScreenPoint(), b = host.getContentBounds(), inside = rec.shown && host.isVisible() && !host.isMinimized() && pt.x >= b.x && pt.x < b.x + b.width && pt.y >= b.y && pt.y < b.y + b.height;
       if (pt.x !== rec.last.x || pt.y !== rec.last.y) { rec.last = pt; rec.moved = Date.now(); }
-      const overBar = rec.bar && inside && pt.y >= b.y + b.height - BAR, want = inside && (Date.now() - rec.moved < IDLE_MS || overBar);
+      const overBar = rec.bar && inside && pt.y >= b.y + b.height - BAR, want = inside && (Date.now() - rec.moved < IDLE_MS || overBar || rec.menu > 0);
       if (want !== rec.bar) { rec.bar = want; showControls(want); send({ type: 'bar', show: want }); }
       if (rec.ads === 'show' && ++adTick % 3 === 0) watchAds();
       const st = rec.ended ? null : await vlcReq(port, pw, ''); if (gone()) return;
@@ -158,7 +158,7 @@ module.exports = function createVlcWindows(o) {
     await video.loadURL('data:text/html;charset=utf-8,<body style="background:%23000;margin:0"></body>');
     host.loadURL(o.url() + 'player.html?channel=' + encodeURIComponent(login)); ctl.loadURL(o.url() + 'player-controls.html?channel=' + encodeURIComponent(login));
     start(); listQualities(found.streamlink, login).then((q) => { rec.qualities = q; });
-    rec.restart = (q) => { rec.quality = q; start(); };
+    rec.restart = (q) => { rec.quality = q; start(); }; rec.place = place;
     return { ok: true, player: 'VLC' };
   }
 
@@ -177,6 +177,7 @@ module.exports = function createVlcWindows(o) {
       case 'max': if (rec.host.isFullScreen()) rec.host.setFullScreen(false); else if (rec.host.isMaximized()) rec.host.unmaximize(); else rec.host.maximize(); return null;   // a double click
       case 'full': rec.host.setFullScreen(!rec.host.isFullScreen()); return null;
       case 'quality': if (QUALITIES.includes(c.q) && (rec.qualities.includes(c.q) || c.q === 'best')) rec.restart(c.q); return null;
+      case 'menu': rec.menu = Math.max(0, Math.min(420, Math.round(Number(c.h) || 0))); rec.place(); return null;   // the quality menu opens upward, so the controls window makes room for it
       case 'cc': {   // closed captions: ask VLC for its subtitle tracks and pick the next one; after the last they switch off again
         const list = await rcCall(rec.rc, 'strack'), ids = Array.from(list.matchAll(/\|\s*(\d+) - /g)).map((m) => Number(m[1])); if (!ids.length) return null;
         const cur = /\|\s*(-?\d+) - [^\n]*\*\s*$/m.exec(list), at = cur && Number(cur[1]) >= 0 ? ids.indexOf(Number(cur[1])) : -1, next = at + 1 < ids.length ? ids[at + 1] : -1;
