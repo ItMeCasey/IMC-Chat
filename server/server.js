@@ -19,6 +19,7 @@ const installedFonts = () => fontCache ? Promise.resolve(fontCache) : new Promis
   require('node:child_process').execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName System.Drawing; (New-Object System.Drawing.Text.InstalledFontCollection).Families | ForEach-Object { $_.Name }"], { windowsHide: true, timeout: 20000, maxBuffer: 4e6 },
     (err, out) => { const list = err ? [] : Array.from(new Set(String(out).split(/\r?\n/).map((x) => x.trim()).filter((x) => x && x.length <= 80 && !/^IMC /.test(x)))).sort((a, b) => a.localeCompare(b)); if (list.length) fontCache = list; resolve(list); });
 });
+const pointsNow = {};   // channel -> { balance, ts }: what the points reader last saw on Twitch's page
 const UPDATE_REPO = 'ItMeCasey/IMC-Chat';
 const newer = (a, b) => { const x = String(a).replace(/^v/i, '').split('.').map(Number), y = String(b).replace(/^v/i, '').split('.').map(Number); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d > 0; } return false; };   // is a later than b
 /** the newest release on GitHub, and whether it is later than this version (it only looks: nothing is downloaded) */
@@ -49,12 +50,24 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/health') return json(res, 200, { ok: true, version: VERSION, light: twitch.status().connected ? 'green' : 'amber', uptime: Math.round((Date.now() - STARTED) / 1000) });
     if (p === '/api/status') return json(res, 200, twitch.status());
+    if (p === '/api/whispers') return json(res, 200, twitch.whisperList());
+    if (p === '/api/whisper/read') return json(res, 200, twitch.readWhispers((await readBody(req)).login));
+    if (p === '/api/whisper/send') { const b = await readBody(req); return json(res, 200, await twitch.sendWhisper(b.login, b.text).then(() => ({ ok: true }), (e) => ({ error: e.message }))); }
+    if (p === '/api/cheermotes') return json(res, 200, await twitch.cheermotes(new URL(req.url, 'http://localhost').searchParams.get('channel')).catch(() => ({})));
     if (p === '/api/badges') return json(res, 200, await twitch.badges(new URL(req.url, 'http://localhost').searchParams.get('channel')));
     if (p === '/api/followed') return json(res, 200, await twitch.followed().then((list) => ({ list }), (e) => ({ error: e.message })));
     if (p === '/api/export') { res.writeHead(200, { 'Content-Type': 'application/json', 'Content-Disposition': 'attachment; filename="imc-chat-backup.json"', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(twitch.exportData(), null, 2)); }
     if (p === '/api/emotes') return json(res, 200, await twitch.emotes(new URL(req.url, 'http://localhost').searchParams.get('channel')).catch((e) => ({ error: e.message })));
     if (p === '/api/user') return json(res, 200, await twitch.userInfo(new URL(req.url, 'http://localhost').searchParams.get('id')).catch((e) => ({ error: e.message })));
     if (p === '/api/fonts') return json(res, 200, await installedFonts());
+    if (p === '/api/points') {
+      if (req.method === 'POST') {
+        const b = await readBody(req), ch = String(b.channel || ''), bal = String(b.balance || ''), bit = String(b.bits || '');
+        if (/^[a-z0-9_]{3,25}$/.test(ch) && /^(\d[\d.,]{0,11}[KMB]?)?$/i.test(bal) && /^(\d[\d.,]{0,11}[KMB]?)?$/i.test(bit)) { pointsNow[ch] = { balance: bal, bits: bit, ts: Date.now() }; broadcast('points', { channel: ch, balance: bal, bits: bit, claimed: !!b.claimed }); }
+        return json(res, 200, { ok: true });
+      }
+      return json(res, 200, pointsNow);
+    }
     if (p === '/api/update') return json(res, 200, await checkUpdate().catch((e) => ({ current: VERSION, error: 'Could not reach GitHub' })));
     if (p === '/api/clipinfo') return json(res, 200, await twitch.clipInfo(new URL(req.url, 'http://localhost').searchParams.get('id')).catch((e) => ({ error: e.message })));
     if (p === '/api/history') return json(res, 200, twitch.history(new URL(req.url, 'http://localhost').searchParams.get('channel')));

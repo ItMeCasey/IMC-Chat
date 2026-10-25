@@ -12,7 +12,7 @@
   html, body { height: 100%; } body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: var(--size); font-weight: var(--fw); display: flex; flex-direction: column; overflow: hidden; }
   header { display: flex; align-items: center; gap: 14px; padding: 0 0 0 18px; padding-right: calc(100vw - env(titlebar-area-width, calc(100vw - 138px))); background: var(--panel); position: relative; flex: none; -webkit-app-region: drag; height: 40px; }
   header::after { content:""; position:absolute; left:0; right:0; bottom:0; height:4px; background: linear-gradient(90deg,var(--accent) 0 30%,var(--accent2) 30% 55%,var(--danger) 55% 75%,var(--accent2) 75% 90%,var(--text) 90%); }
-  header > * { -webkit-app-region: no-drag; } header h1 { -webkit-app-region: drag; }
+  header > * { -webkit-app-region: no-drag; } header h1, header .logo, header #dash, header #who, header #chatIn, header #conn, header #ver, header .sp { -webkit-app-region: drag; } header { user-select: none; }   /* the title text drags the window; only the buttons are clickable */
   .logo { width: 24px; height: 24px; flex: none; -webkit-app-region: drag; pointer-events: none; } header .logo { margin-right: -6px; } #settings .top .logo { margin-right: -2px; }
   h1 { font-family: "IMC Sans", sans-serif; font-size: 1.1em; letter-spacing: 5px; font-weight: 400; } header .sp { flex: 1; } #who { font-size: 1.1em; font-weight: 800; letter-spacing: 2px; color: var(--accent); } #dash { color: var(--muted); font-weight: 800; }
   /* the gear is one of the window's own buttons: same width, full header height, same hover */
@@ -69,6 +69,7 @@
   .m { padding: 3px 5px; word-wrap: break-word; position: relative; } .m:hover { background: var(--hover); } .m.ment { background: color-mix(in srgb, var(--accent2) 18%, transparent); border-left: 3px solid var(--accent2); padding-left: 9px; } .m.mine .n { text-decoration: underline; }
   .m.cheer { border-left: 3px solid var(--accent); padding-left: 9px; background: color-mix(in srgb, var(--accent) 10%, transparent); } .m.hl { background: color-mix(in srgb, var(--accent) 14%, transparent); } .m .tag { font-size: .7em; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-right: 6px; }
   .m .t { color: var(--muted); font-size: .7em; margin-right: 6px; opacity: .8; } .m .n { font-weight: calc(var(--fw) + 300 > 900 ? 900 : var(--fw) + 300); cursor: pointer; } .m .n:hover { text-decoration: underline; }
+  .m img.cm { height: 1.9em; margin: -.4em 0 -.4em 2px; } .m .cmb { font-size: .85em; margin-right: 4px; }
   .m img.e { height: 1.6em; vertical-align: middle; margin: -.3em 1px; } .m img.bd { height: 1.15em; vertical-align: middle; margin: -.2em 3px -.2em 0; } .m img.gif { display: block; max-height: 170px; max-width: 280px; margin: 4px 0; border: 2px solid var(--line); }
   .m .rp { display: block; color: var(--rc); font-size: .8em; }
   .m.rpl { --rc: var(--accent2); position: relative; border-left: 3px solid var(--rc); padding-left: 9px; } .m.rpl::before, .m.rpl::after { content: ''; position: absolute; left: -3px; width: 9px; height: 3px; background: var(--rc); } .m.rpl::before { top: 0; } .m.rpl::after { bottom: 0; }   /* a reply: a [ down the left edge, and the message it answers in the same colour */ .m .acts { display: none; position: absolute; right: 6px; top: 1px; background: var(--panel); border: 1px solid var(--line); } .m:hover .acts { display: flex; }
@@ -76,6 +77,22 @@
   .ev { margin: 6px 0; padding: 7px 12px; border-left: 4px solid var(--accent2); background: var(--panel); display: flex; gap: 10px; align-items: flex-start; } .ev svg { margin-top: .2em; color: var(--accent2); font-size: 1.15em; } .ev .hd { font-weight: 800; } .ev .bd2 { color: var(--text); } .ev .who { color: var(--muted); font-size: .85em; }
   .ev-redeem, .ev-poll, .ev-prediction { border-color: var(--accent); } .ev-redeem svg, .ev-poll svg, .ev-prediction svg { color: var(--accent); } .ev-hype_train { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, var(--panel)); } .ev-hype_train svg { color: var(--danger); } .ev-ad_break { border-color: var(--muted); } .ev-ad_break svg { color: var(--muted); }
   .m img.e.big { height: 4.2em; margin: -.3em 4px; } .m.fx { border-left: 3px solid transparent; border-image: linear-gradient(180deg, var(--accent), var(--accent2), var(--danger)) 1; padding-left: 9px; background: linear-gradient(90deg, color-mix(in srgb, var(--accent2) 16%, transparent), transparent 70%); } .m .tag.src { background: var(--panel2); color: var(--muted); } .m .fs { color: var(--accent); font-size: .8em; margin-left: 3px; cursor: default; }
+  #ptsPop { display: none; position: fixed; right: 12px; bottom: 58px; z-index: 30; width: 380px; max-width: calc(100% - 24px); max-height: 62vh; flex-direction: column; background: var(--panel); border: 2px solid var(--accent); box-shadow: 0 12px 34px #000b; } #ptsPop.on { display: flex; }
+  #ptsPop .ph { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--panel2); border-bottom: 2px solid var(--accent); } #ptsPop .ph b { flex: 1; letter-spacing: 3px; font-size: .8em; } #ptsPop .ph .bal { color: var(--accent); font-weight: 800; } #ptsPop .ph .x { cursor: pointer; color: var(--muted); } #ptsPop .ph .x:hover { color: var(--danger); }
+  #ptsPop .pb { overflow-y: auto; } #ptsPop .pr { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); } #ptsPop .pr .n { flex: 1; min-width: 0; overflow-wrap: anywhere; } #ptsPop .pr .c { color: var(--accent); font-weight: 800; white-space: nowrap; } #ptsPop .pr.off { opacity: .45; } #ptsPop .pr button { height: 26px; padding: 0 10px; } #ptsPop .pm { padding: 12px; color: var(--muted); } #ptsPop .cf { display: grid; gap: 10px; padding: 12px; } #ptsPop .cf input { width: 100%; } #ptsPop .cf .bt { display: flex; gap: 8px; }
+  .evt { display: grid; gap: 10px; }
+  #msgbox { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; padding-right: 4px; background: var(--input); border: 2px solid var(--line); } #msgbox:focus-within { border-color: var(--accent); }
+  #msgbox #msg { border: 0 !important; background: transparent !important; flex: 1; } #msgbox button { height: 26px; } #msgbox button.ic { width: 30px; border: 0; outline: 0; } #msgbox #sendBtn { padding: 0 12px; }   /* Emotes and Send live inside the box */
+  #subBtn { color: var(--danger); } #subBtn svg { width: 14px; height: 14px; }
+  .ptsb { width: auto; padding: 0 10px; gap: 6px; font-size: .8em; letter-spacing: 0; text-transform: none; font-weight: 700; } .ptsb svg { width: 14px; height: 14px; flex: none; } #ptsBtn { color: var(--accent); } #bitsBtn { color: var(--accent2); }
+  #whisperBtn { position: relative; } #wBadge { display: none; position: absolute; top: 7px; right: 8px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 800; line-height: 16px; text-align: center; } #wBadge.on { display: block; }
+  #wsp { display: none; position: fixed; top: 44px; right: 12px; z-index: 50; width: 460px; max-width: calc(100vw - 24px); height: 520px; max-height: calc(100vh - 60px); flex-direction: column; background: var(--panel); border: 2px solid var(--accent); box-shadow: 0 12px 34px #000b; } #wsp.on { display: flex; }
+  #wsp .wh { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--panel2); border-bottom: 2px solid var(--accent); } #wsp .wh b { flex: 1; letter-spacing: 3px; font-size: .8em; } #wsp .wh .x { cursor: pointer; color: var(--muted); } #wsp .wh .x:hover { color: var(--danger); }
+  #wsp .wb { flex: 1; min-height: 0; display: flex; } #wsp .wl { flex: none; width: 140px; overflow-y: auto; border-right: 1px solid var(--line); } #wsp .wl div { padding: 9px 10px; cursor: pointer; display: flex; gap: 6px; align-items: center; } #wsp .wl div:hover { background: var(--hover); } #wsp .wl div.on { background: var(--bg); border-left: 3px solid var(--accent); } #wsp .wl i { font-style: normal; background: var(--danger); color: #fff; border-radius: 8px; font-size: .7em; padding: 0 5px; margin-left: auto; }
+  #wsp .wm { flex: 1; min-width: 0; display: flex; flex-direction: column; } #wsp .wmsgs { flex: 1; overflow-y: auto; padding: 8px 10px; display: grid; gap: 6px; align-content: start; } #wsp .wmsgs div { max-width: 85%; padding: 5px 9px; background: var(--panel2); overflow-wrap: anywhere; } #wsp .wmsgs .me { justify-self: end; background: color-mix(in srgb, var(--accent) 22%, var(--panel2)); } #wsp .wmsgs small { display: block; color: var(--muted); font-size: .7em; }
+  #wsp form { flex: none; display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--line); } #wsp form input { flex: 1; } #wsp .wnew { padding: 8px; border-bottom: 1px solid var(--line); display: flex; gap: 6px; } #wsp .wnew input { flex: 1; } #wsp .wnote { padding: 12px; color: var(--muted); }
+  #chatIn { color: var(--muted); } #chatIn b { color: var(--accent); font-weight: 700; }
+  header h1, header #dash, header #who, header #chatIn { font-family: "IMC Sans", sans-serif; font-size: 15px; line-height: 40px; height: 40px; letter-spacing: 3px; white-space: nowrap; display: flex; align-items: center; } header h1 { font-weight: 400; } header #dash { font-weight: 400; } header #who { font-weight: 700; letter-spacing: 3px; } header #chatIn { font-weight: 400; margin-left: 10px; min-width: 0; overflow: hidden; text-overflow: ellipsis; display: block; }   /* one size, one baseline for everything in the title */
   .tab .spark { width: 36px; height: 12px; flex: none; fill: var(--accent2); opacity: .75; } .tab .nm { flex: 1 1 auto; } body.railmin .tab .spark, body.pop .tab .spark, body.noact .tab .spark { display: none; } #card .rec { display: grid; gap: 3px; font-size: .85em; border-top: 1px solid var(--line); padding-top: 8px; } #card .rec div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } #card .rec .lb { color: var(--accent); letter-spacing: 3px; font-size: .7em; }
   .clipcard { display: flex; gap: 10px; margin: 5px 0 2px; padding: 6px; max-width: 460px; min-height: 66px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); cursor: pointer; } .clipcard:hover { background: var(--hover); border-color: var(--accent); }
   .clipcard .th { position: relative; flex: none; width: 128px; aspect-ratio: 16 / 9; background: var(--line); } .clipcard .th img { width: 100%; height: 100%; object-fit: cover; display: block; } .clipcard .dur { position: absolute; right: 3px; bottom: 3px; padding: 0 4px; font-size: .7em; background: #000c; color: #fff; } .clipcard .pl { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 1.8em; opacity: 0; background: #0006; } .clipcard:hover .pl { opacity: 1; }
@@ -114,6 +131,7 @@
   #settings h2 { font-family: "IMC Sans", sans-serif; font-size: .9em; letter-spacing: 6px; flex: 1; font-weight: 400; } #settings .x { width: 46px; height: 100%; border: 0; background: transparent; color: var(--text); font-size: 1.1em; cursor: pointer; letter-spacing: 0; padding: 0; display: flex; align-items: center; justify-content: center; } #settings .x:hover { background: var(--danger); color: #fff; filter: none; }
   #settings .sbody { flex: 1; min-height: 0; display: flex; } #settings .spane { flex: 1; min-width: 0; overflow-y: auto; } .cat-off { display: none !important; }
   #setGrip { flex: none; width: 6px; margin-left: -3px; cursor: col-resize; z-index: 2; } #setGrip:hover, #setGrip.drag { background: var(--accent); opacity: .7; }
+  .aboutrow { font-size: 1.1em; } .aboutrow b { letter-spacing: 3px; } #settings .legal { max-height: 300px; overflow-y: auto; padding: 10px 12px; background: var(--input); border: 1px solid var(--line); font-size: .78em; line-height: 1.5; color: var(--muted); display: grid; gap: 10px; } #settings .legal p { margin: 0; } #settings .legal b { color: var(--text); letter-spacing: 1px; }
   #setRail { flex: none; width: var(--setrail, 150px); background: var(--panel2); border-right: 1px solid var(--line); padding: 8px 0; overflow-y: auto; } #setRail button { display: block; width: 100%; height: auto; padding: 13px 16px; text-align: left; background: transparent; color: var(--muted); border: 0; border-left: 4px solid transparent; letter-spacing: 3px; font-size: .75em; } #setRail button:hover { background: var(--hover); color: var(--text); filter: none; } #setRail button.on { color: var(--text); border-left-color: var(--accent); background: var(--bg); } #settings .sec { padding: 14px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; } #settings h3 { font-size: .7em; letter-spacing: 4px; color: var(--accent); }
   .dd { position: relative; max-width: 420px; } .dd > button { width: 100%; height: auto; min-height: var(--bh); padding: 8px 12px; justify-content: space-between; gap: 10px; text-transform: none; letter-spacing: 0; font-size: 1em; font-weight: 400; background: var(--input); color: var(--text); border: 2px solid var(--line); text-align: left; } .dd > button:hover, .dd.open > button { border-color: var(--accent); filter: none; } .dd > button::after { content: '\25BE'; color: var(--muted); }
   .dd .list { display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 5; background: var(--panel2); border: 2px solid var(--accent); border-top: 0; max-height: 360px; overflow-y: auto; box-shadow: 0 10px 24px #000a; } .dd.open .list { display: block; } .dd .it { padding: 9px 12px; cursor: pointer; } .dd .it:hover { background: var(--hover); } .dd .it.on { border-left: 4px solid var(--accent); padding-left: 8px; } .dd .it .s { font-size: 1.1em; } .dd .it .d, .dd > button .d { color: var(--muted); font-size: .78em; font-family: var(--font); }
@@ -123,14 +141,14 @@
   .th { border: 2px solid var(--line); cursor: pointer; overflow: hidden; } .th.on { border-color: var(--accent); outline: 2px solid var(--accent); } .th .sw { height: 46px; display: flex; align-items: flex-end; padding: 6px 8px; gap: 4px; } .th .sw i { width: 14px; height: 14px; display: block; } .th .nm { padding: 5px 8px; font-size: .78em; font-weight: 700; background: var(--panel2); font-family: "Segoe UI", sans-serif; }
 </style></head>
 <body>
-<header><img class="logo" src="/icon.png" alt=""><h1>IMC-CHAT</h1><span id="dash">-</span><span id="who"></span><span id="conn"></span><span class="sp"></span><span id="ver"></span><button class="sysbtn" id="gear" title="Settings" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 15.500a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7z"/><path d="M19.400 13a7.600 7.600 0 0 0 0-2l2-1.600-2-3.400-2.400.9a7.500 7.500 0 0 0-1.700-1L15 3.300h-4l-.3 2.600a7.500 7.500 0 0 0-1.700 1l-2.400-.9-2 3.400L6.600 11a7.600 7.600 0 0 0 0 2l-2 1.600 2 3.400 2.400-.9a7.500 7.500 0 0 0 1.700 1l.3 2.600h4l.3-2.600a7.500 7.500 0 0 0 1.700-1l2.400.9 2-3.400z"/></svg></button></header>
+<header><img class="logo" src="/icon.png" alt=""><h1>IMC-CHAT</h1><span id="dash">-</span><span id="who"></span><span id="chatIn"></span><span id="conn"></span><span class="sp"></span><span id="ver"></span><button class="sysbtn" id="whisperBtn" title="Whispers" style="display:none"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7.200L8 21.500V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm3 4v1.800h10V8zm0 3.500v1.800h6.500v-1.800z"/></svg><span id="wBadge"></span></button><button class="sysbtn" id="gear" title="Settings" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 15.500a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7z"/><path d="M19.400 13a7.600 7.600 0 0 0 0-2l2-1.600-2-3.400-2.400.9a7.500 7.500 0 0 0-1.700-1L15 3.300h-4l-.3 2.600a7.500 7.500 0 0 0-1.700 1l-2.400-.9-2 3.400L6.600 11a7.600 7.600 0 0 0 0 2l-2 1.600 2 3.400 2.400-.9a7.500 7.500 0 0 0 1.700 1l.3 2.600h4l.3-2.600a7.500 7.500 0 0 0 1.700-1l2.400.9 2-3.400z"/></svg></button></header>
 <div id="app">
-  <div id="banner"><span>Reconnect Twitch once to turn on new features (moderator tools, your own emotes, followed channels): they need new permissions.</span><button id="reconnect">Reconnect</button></div>
+  <div id="wsp"></div><div id="banner"><span>Reconnect Twitch once to turn on new features (moderator tools, your own emotes, followed channels, your subscriptions, whispers): they need new permissions.</span><button id="reconnect">Reconnect</button></div>
   <div id="shell">
     <div id="tabs"><div id="tablist" style="display:contents"></div><form id="add"><input id="join" placeholder="join a channel..." autocomplete="off" spellcheck="false"><button>Join</button></form><button type="button" id="railBtn" data-tip="Collapse or expand the list"></button></div>
     <div id="rail" title="Drag to resize (double-click to reset)"></div>
     <main><div id="player"></div><div id="chatcol"><div id="popbar"><span id="popName"></span><span id="popLive"></span><button class="ghost" id="popPlayer" data-tip="Watch with VLC or mpv through Streamlink">Open in player</button><button class="ghost" id="popVideo">Watch</button></div><div id="empty">Join any channel with the box in the tab bar. Type a name or paste a twitch.tv link.</div><div id="logwrap"><div id="find"><input id="findQ" placeholder="Find in this chat..." autocomplete="off" spellcheck="false"><span id="findN" class="muted"></span><button class="ghost" id="findX">Close</button></div><div id="log"></div><button id="jump"></button></div>
-      <div id="modbar"></div><form id="bar" style="display:none"><div id="reply"></div><div id="msg" class="empty" contenteditable="true" role="textbox" spellcheck="true" data-ph="Send a message"></div><span id="cnt"></span><button type="button" class="ghost ic" id="emoBtn" title="Emotes"><svg viewBox="0 0 24 24" style="font-size:1.5em"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-3.5 7.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm7 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM12 18.5a6 6 0 0 1-5.3-3.2h10.6A6 6 0 0 1 12 18.5z"/></svg></button><button id="sendBtn">Send</button></form></div></main>
+      <div id="modbar"></div><form id="bar" style="display:none"><div id="reply"></div><div id="msgbox"><div id="msg" class="empty" contenteditable="true" role="textbox" spellcheck="true" data-ph="Send a message"></div><span id="cnt"></span><button type="button" class="ghost ic" id="emoBtn" title="Emotes"><svg viewBox="0 0 24 24" style="font-size:1.5em"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-3.5 7.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm7 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM12 18.5a6 6 0 0 1-5.3-3.2h10.6A6 6 0 0 1 12 18.5z"/></svg></button><button id="sendBtn">Send</button></div><button type="button" class="ghost ptsb" id="subBtn" style="display:none" data-tip="Subscribe to this channel (opens in your browser)"></button><button type="button" class="ghost ptsb" id="ptsBtn" style="display:none" data-tip="Channel points: rewards and power-ups"></button><button type="button" class="ghost ptsb" id="bitsBtn" style="display:none" data-tip="Bits"></button></form><div id="ptsPop"></div></div></main>
   </div>
 </div>
 <div id="login"><h2 style="letter-spacing:5px;color:var(--accent)">CONNECT TWITCH</h2><p class="muted">Press Connect, open the link Twitch shows and type the code. The app never sees your password.</p><div id="codebox" style="display:none"><div id="code"></div><p><a id="link" target="_blank" rel="noopener"></a></p></div><div><button id="connect">Connect Twitch</button></div><p id="lmsg" class="muted"></p></div>
@@ -144,10 +162,11 @@
     <div class="row2"><label>Size</label><input type="range" id="size" min="11" max="32" step="1"><output id="sizeO"></output></div>
     <div class="row2"><label>Weight</label><input type="range" id="weight" min="100" max="900" step="100"><output id="weightO"></output></div>
     <div id="prev">Casey: the quick brown fox jumps over the lazy dog 0123456789 &mdash; <b>bold</b> <i>italic</i><br>bdpq il1 O0 &mdash; "Hello, chat!" (how's it going?)</div></div>
-  <div class="sec"><h3>CHAT</h3><label class="tgl"><input type="checkbox" id="recentHistory"> Load recent messages when I join a channel</label><label class="tgl"><input type="checkbox" id="compact"> Slim layout</label><label class="tgl"><input type="checkbox" id="showTime"> Show timestamps</label><label class="tgl"><input type="checkbox" id="mentionSound"> Play a sound when my name is mentioned</label><div class="row2" style="grid-template-columns:90px 1fr 120px"><label>Volume</label><input type="range" id="mentionVol" min="0" max="100" step="5"><span style="text-align:right"><output id="mentionVolO"></output> <button class="ghost" id="testChime">Test</button></span></div><label class="tgl"><input type="checkbox" id="mentionFlash"> Flash the channel tab until I open it</label>
+  <div class="sec"><h3>CHAT</h3><div id="evToggles" class="evt"></div><label class="tgl"><input type="checkbox" id="recentHistory"> Load recent messages when I join a channel</label><label class="tgl"><input type="checkbox" id="compact"> Slim layout</label><label class="tgl"><input type="checkbox" id="showTime"> Show timestamps</label><label class="tgl"><input type="checkbox" id="mentionSound"> Play a sound when my name is mentioned</label><div class="row2" style="grid-template-columns:90px 1fr 120px"><label>Volume</label><input type="range" id="mentionVol" min="0" max="100" step="5"><span style="text-align:right"><output id="mentionVolO"></output> <button class="ghost" id="testChime">Test</button></span></div><label class="tgl"><input type="checkbox" id="mentionFlash"> Flash the channel tab until I open it</label>
     <label class="tgl"><input type="checkbox" id="altRows"> Alternate the background of every other message</label>
     <label class="tgl"><input type="checkbox" id="liveOnly"> Show live only</label>
-    <label class="tgl"><input type="checkbox" id="showActivity"> Show chat activity</label></div>
+    <label class="tgl"><input type="checkbox" id="showActivity"> Show chat activity</label>
+    <label class="tgl"><input type="checkbox" id="channelPoints"> Show channel points and claim bonuses</label></div>
   <div class="sec"><h3>FOLLOWED CHANNELS</h3><div class="muted">Add the channels you follow on Twitch as tabs (up to <span id="folMax">60</span> in all: Twitch limits how many chats one connection can follow).</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="folOpen">Add followed channels...</button></div>
     <label class="tgl"><input type="checkbox" id="autoLive"> When a channel I follow goes live, add it as a tab</label>
@@ -160,7 +179,7 @@
   <div class="sec"><h3>THEME</h3><div id="themeBox"></div></div>
   <div class="sec"><h3>ACCOUNT</h3><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span class="muted" id="acct" style="flex:1"></span><button class="ghost" id="logout">Log out</button><button id="setLogin" style="display:none">Log in to Twitch</button></div></div>
   <div class="sec"><h3>UPDATES</h3><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><button class="ghost" id="updBtn">Check for update</button><span class="muted" id="updMsg"></span><button id="updGo" style="display:none">Open download page</button></div></div>
-  <div class="sec"><h3>VIDEO PLAYER</h3><div class="muted">Watch a channel in VLC or mpv instead of the built-in player (right-click a tab, or the button in a popout). It uses Streamlink to fetch the stream: install it once with <b>winget install Streamlink.Streamlink</b>.</div><div class="row2" style="grid-template-columns:90px 1fr"><label>Watch with</label><select id="videoSource"><option value="vlc">VLC (our own window, with captions and resizing)</option><option value="twitch">Twitch's own player (log in once: Turbo and subscribers get no ads)</option></select></div><div class="muted" id="plInfo"></div>
+  <div class="sec"><h3>VIDEO PLAYER</h3><div class="muted">Watch a channel in VLC or mpv instead of the built-in player (right-click a tab, or the button in a popout). It uses Streamlink to fetch the stream: install it once with <b>winget install Streamlink.Streamlink</b>.</div><div class="row2" style="grid-template-columns:90px 1fr"><label>Watch with</label><select id="videoSource"><option value="vlc">VLC (our own window, with captions and resizing)</option><option value="twitch">Twitch's own player (log in once: Turbo and subscribers get no ads)</option></select></div><label class="tgl"><input type="checkbox" id="openViewer"> Open Viewer on Chat Open</label><div class="muted" id="plInfo"></div>
     <div id="plInstall" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button id="plInstallBtn" style="display:none">Install Streamlink</button><a id="plDl" class="muted" style="display:none" href="https://streamlink.github.io/install.html#windows" target="_blank" rel="noopener">or download it yourself</a><button id="plInstallMpv" class="ghost" style="display:none">Install mpv (hover controls)</button></div>
     <div class="row2" style="grid-template-columns:90px 1fr"><label>Player</label><select id="playerPref"><option value="">Automatic (VLC, then mpv)</option><option value="vlc">VLC</option><option value="mpv">mpv</option></select></div>
     <div class="row2" style="grid-template-columns:90px 1fr"><label>Window</label><select id="playerStyle"><option value="own">Our own window: resizable, with hover controls (VLC)</option><option value="chromeless">Chromeless: no window frame, always on top</option><option value="normal">VLC / mpv own window</option></select></div>
@@ -169,6 +188,18 @@
     <input id="playerPath" placeholder="Or a player program of your own (leave empty for automatic)" autocomplete="off" spellcheck="false" style="width:100%"></div>
   <div class="sec" id="twSec" style="display:none"><h3>TWITCH'S OWN PLAYER</h3><div class="muted">Choose <b>Watch with: Twitch's own player</b> above and the tab's play button opens Twitch's real web player in a window of this app. If you have Twitch Turbo, or you subscribe to the channel, you will not see ads once you are logged in there. It is the same login as Connect Twitch: connecting the chat opens its approval page in this window, so you log in once for both. The app never sees your password: you type it on Twitch's own page.</div>
     <div class="muted" id="twState"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="twLogin">Log in to Twitch here</button><button class="ghost" id="twLogout" style="display:none">Log out of it</button></div></div>
+  <div class="sec"><h3>ABOUT</h3>
+    <div class="aboutrow"><b>IMC-Chat</b> <span id="aboutVer" class="muted"></span></div>
+    <div class="muted">&copy; 2026 ItMeCasey. Free software, licensed under the <a class="lnk" href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GNU General Public License, version 3 or (at your option) any later version</a>. You may use, study, change and share it under that license; the full text is in the LICENSE file of the <a class="lnk" href="https://github.com/ItMeCasey/IMC-Chat" target="_blank" rel="noopener noreferrer">source repository</a>.</div>
+    <div class="legal" tabindex="0">
+      <p><b>NO WARRANTY.</b> THIS SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo;, WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND ANY WARRANTY THAT IT WILL BE ERROR-FREE, SECURE, OR AVAILABLE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU.</p>
+      <p><b>LIMITATION OF LIABILITY.</b> TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT WILL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR ITS USE, INCLUDING ANY LOSS OF DATA, LOSS OF POINTS, REWARDS, DROPS, SUBSCRIPTIONS OR BITS, MESSAGES SENT IN ERROR, OR ACTION TAKEN AGAINST YOUR TWITCH OR OTHER ACCOUNTS.</p>
+      <p><b>NOT AFFILIATED WITH TWITCH.</b> IMC-Chat is an independent project. It is not made, endorsed, sponsored or supported by Twitch Interactive, Inc., Amazon, or any streamer, and &ldquo;Twitch&rdquo; and related names, logos and emotes belong to their owners. Third-party emotes (7TV, BetterTTV, FrankerFaceZ) belong to their creators.</p>
+      <p><b>YOUR ACCOUNT AND TWITCH&rsquo;S RULES.</b> You are responsible for how you use this software and for following the terms and rules of Twitch and of every service it connects to. Some features act inside Twitch&rsquo;s own web pages in your logged-in session on this computer, for example showing your channel points and bits, claiming the bonus chest, listing rewards and playing video. Twitch may not allow or support automated use of its site, and it can change its pages at any time without notice, which can make those features stop working or behave unexpectedly. Using them is entirely at your own risk.</p>
+      <p><b>YOUR DATA.</b> Settings, channels, whispers and Twitch login information are stored on this computer only. IMC-Chat has no servers of its own and sends nothing to its authors. Features that contact other services (Twitch, emote providers, the recent-messages service, GitHub for update checks) send those services the information they need to work, such as channel names, and are governed by their own terms and privacy policies.</p>
+      <p><b>NOT PROFESSIONAL ADVICE.</b> Nothing in this software is financial, legal or any other professional advice. Spending real money or points, including bits and subscriptions, happens on Twitch&rsquo;s own pages and is your decision.</p>
+    </div>
+  </div>
   <div class="sec"><h3>BACKUP</h3><div class="muted">Your channels and settings in one file (never your login). Use it to move to another PC or after a reinstall.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/api/export" download="imc-chat-backup.json"><button type="button" class="ghost">Export</button></a><button type="button" class="ghost" id="importBtn">Import</button><input type="file" id="importFile" accept=".json,application/json" style="display:none"></div></div>
   <div class="sec"><h3>CHANNEL TABS</h3><div class="layouts"><div class="opt" data-l="horizontal"><div class="s">Horizontal</div><div class="d">Tabs in a row across the top</div></div><div class="opt" data-l="vertical"><div class="s">Vertical</div><div class="d">Tabs in a list on the left, with channel pictures</div></div></div></div>
 </div></div></div></div>
@@ -214,7 +245,7 @@ function drawSettings() {
   $('mentionSound').checked = s.mentionSound !== false; $('mentionFlash').checked = s.mentionFlash !== false; $('mentionVol').value = s.mentionVolume; $('mentionVolO').textContent = s.mentionVolume + '%'; const setList = (id, arr) => { const el = $(id); if (document.activeElement !== el) el.value = (arr || []).join(', '); };
   setList('hlWords', s.highlightWords); setList('muUsers', s.mutedUsers); setList('muWords', s.mutedWords);
   $('alertList').innerHTML = S.channels.length ? S.channels.map((c) => '<label class="tgl"><input type="checkbox" data-alert="' + esc(c.login) + '"' + ((s.mutedAlerts || []).includes(c.login) ? '' : ' checked') + '> Alerts for ' + esc(c.name) + '</label>').join('') : '<span class="muted">Join a channel first.</span>';
-  const inOk = S.auth && S.auth.status === 'ok'; $('acct').textContent = inOk ? 'Logged in as ' + S.login + '. Your channels and settings stay on this PC.' : S.device ? 'Open the page Twitch shows in your browser and type the code ' + S.device.code + '. This page continues by itself.' : 'Not logged in. Your channels and settings are kept on this PC.'; $('logout').style.display = inOk ? '' : 'none'; $('setLogin').style.display = inOk ? 'none' : ''; $('setLogin').textContent = S.device ? 'Open the link again' : 'Log in to Twitch'; $('autoLive').checked = !!s.autoLive; $('showActivity').checked = s.showActivity !== false; $('liveSound').checked = s.liveSound !== false; $('folMax').textContent = S.maxChannels || 60; $('recentHistory').checked = !!s.recentHistory; if (document.activeElement !== $('playerPath')) $('playerPath').value = s.playerPath || ''; $('playerPref').value = s.playerPref || ''; $('playerStyle').value = s.playerStyle || 'own'; $('ads').value = s.ads || 'skip'; $('videoSource').value = s.videoSource || 'vlc'; $('compact').checked = s.compact !== false; $('showTime').checked = s.showTime !== false; $('altRows').checked = !!s.altRows;
+  const inOk = S.auth && S.auth.status === 'ok'; $('acct').textContent = inOk ? 'Logged in as ' + S.login + '. Your channels and settings stay on this PC.' : S.device ? 'Open the page Twitch shows in your browser and type the code ' + S.device.code + '. This page continues by itself.' : 'Not logged in. Your channels and settings are kept on this PC.'; $('logout').style.display = inOk ? '' : 'none'; $('setLogin').style.display = inOk ? 'none' : ''; $('setLogin').textContent = S.device ? 'Open the link again' : 'Log in to Twitch'; $('autoLive').checked = !!s.autoLive; $('showActivity').checked = s.showActivity !== false; drawEvToggles(); $('channelPoints').checked = !!s.channelPoints; $('openViewer').checked = !!s.openViewer; $('liveSound').checked = s.liveSound !== false; $('folMax').textContent = S.maxChannels || 60; $('recentHistory').checked = !!s.recentHistory; if (document.activeElement !== $('playerPath')) $('playerPath').value = s.playerPath || ''; $('playerPref').value = s.playerPref || ''; $('playerStyle').value = s.playerStyle || 'own'; $('ads').value = s.ads || 'skip'; $('videoSource').value = s.videoSource || 'vlc'; $('compact').checked = s.compact !== false; $('showTime').checked = s.showTime !== false; $('altRows').checked = !!s.altRows;
   document.querySelectorAll('.layouts .opt').forEach((o) => o.classList.toggle('on', o.dataset.l === s.layout));
 }
 let saveT = null; function save(b) { Object.assign(S.settings, b); applySettings(S.settings); clearTimeout(saveT); saveT = setTimeout(() => post('settings', S.settings), 250); }
@@ -223,8 +254,8 @@ let saveT = null; function save(b) { Object.assign(S.settings, b); applySettings
 let folTimer = 0;
 function drawStatus(s) {
   const first = !S; S = s; const ok = s.auth.status === 'ok';
-  $('login').style.display = ok ? 'none' : 'grid'; $('app').style.display = ok ? 'flex' : 'none'; $('gear').style.display = ok ? '' : 'none'; $('who').textContent = ok ? s.login : ''; $('dash').style.display = ok ? '' : 'none';
-  $('banner').style.display = ok && (s.needsModScopes || s.needsFollows) ? 'flex' : 'none';
+  $('login').style.display = ok ? 'none' : 'grid'; $('app').style.display = ok ? 'flex' : 'none'; $('gear').style.display = ok ? '' : 'none'; $('whisperBtn').style.display = ok && !POP && !SETWIN ? '' : 'none'; setWBadge(s.whisperUnread || 0); $('who').textContent = ok ? s.login : ''; $('dash').style.display = ok ? '' : 'none';
+  $('banner').style.display = ok && (s.needsModScopes || s.needsFollows || s.needsSubs || s.needsWhispers) ? 'flex' : 'none';
   $('codebox').style.display = s.device ? '' : 'none'; if (s.device) { $('code').textContent = s.device.code; $('link').href = s.device.url; $('link').textContent = s.device.url; }
   $('lmsg').textContent = s.device ? 'Waiting for you to approve it on Twitch... (this page continues by itself)' : s.auth.status === 'error' ? s.auth.message : ''; $('connect').textContent = s.device ? 'Open the link again' : 'Connect Twitch';
   loaded = true; applySettings(s.settings); drawConn(); if (ok && !SETWIN && !folTimer) { loadFollowed(); folTimer = setInterval(loadFollowed, 900000); }
@@ -271,6 +302,89 @@ function drawConn() {
   const state = serverDown ? 'down' : ok && !S.connected ? 'wait' : '';
   c.style.display = state ? 'inline-flex' : 'none'; c.className = state === 'down' ? 'down' : ''; c.innerHTML = state ? '<i></i>' + (state === 'down' ? 'App not responding' : 'Reconnecting') : '';
 }
+const pointsNow = {};   // channel -> { balance }: channel points read from Twitch's own page (the setting is off by default)
+get('points').then((p) => { if (p && typeof p === 'object') { Object.assign(pointsNow, p); if (S) drawTabs(); } }).catch(() => {});
+function drawEvToggles() {   // one slider per kind of chat event: on means hidden
+  const h = new Set(cfgs().hiddenEvents || []), el = $('evToggles'); if (el.dataset.have === Array.from(h).sort().join(',')) return; el.dataset.have = Array.from(h).sort().join(',');
+  el.innerHTML = EVGROUPS.map(([id, label]) => '<label class="tgl"><input type="checkbox" data-ev="' + id + '"' + (h.has(id) ? ' checked' : '') + '> Hide ' + esc(label) + '</label>').join('');
+}
+$('evToggles').addEventListener('change', (e) => { const id = e.target.dataset.ev; if (!id) return; const h = new Set(cfgs().hiddenEvents || []); if (e.target.checked) h.add(id); else h.delete(id); save({ hiddenEvents: Array.from(h) }); render(); });
+function drawSub() {   // not subscribed to this channel: a Subscribe button beside the points (it opens Twitch in your browser, where you pay)
+  const c = chan(cur), on = !!(c && c.sub === false); $('subBtn').style.display = on ? '' : 'none';
+  if (on) $('subBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21l-1.5-1.3C5.4 15.4 2 12.400 2 8.500 2 5.400 4.400 3 7.500 3c1.700 0 3.400.8 4.500 2.100C13.100 3.800 14.800 3 16.500 3 19.600 3 22 5.400 22 8.500c0 3.900-3.400 6.900-8.500 11.200z"/></svg>Subscribe';
+}
+// ---------------------------------------------------------------- whispers: the title bar icon, its badge, and the panel
+let wList = [], wOpenWith = '';
+const setWBadge = (n) => { const b = $('wBadge'); b.textContent = n > 99 ? '99+' : String(n || ''); b.classList.toggle('on', n > 0); $('whisperBtn').title = n ? 'Whispers (' + n + ' new)' : 'Whispers'; };
+const wClock = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+function drawWsp() {
+  const pop = $('wsp'); if (!pop.classList.contains('on')) return; const cur2 = wList.find((w) => w.login === wOpenWith);
+  pop.innerHTML = '<div class="wh"><b>WHISPERS</b><span class="x" id="wX">&#10005;</span></div>' + (S && S.needsWhispers ? '<div class="wnote">Reconnect Twitch to allow whispers.</div>' : '<div class="wnew"><input id="wTo" placeholder="Whisper to a username..." autocomplete="off" spellcheck="false"><button class="ghost" id="wGo">Start</button></div>'
+    + '<div class="wb"><div class="wl">' + (wList.length ? wList.map((w) => '<div data-w="' + esc(w.login) + '" class="' + (w.login === wOpenWith ? 'on' : '') + '">' + esc(w.name) + (w.unread ? '<i>' + w.unread + '</i>' : '') + '</div>').join('') : '<div class="wnote">No whispers yet.</div>') + '</div>'
+    + '<div class="wm">' + (cur2 || wOpenWith ? '<div class="wmsgs" id="wMsgs">' + ((cur2 || { msgs: [] }).msgs.map((m) => '<div class="' + (m.mine ? 'me' : '') + '"><small>' + esc(m.mine ? 'you' : cur2.name) + ' &middot; ' + wClock(m.ts) + '</small>' + esc(m.text) + '</div>').join('') || '<div class="wnote">Say something.</div>') + '</div><form id="wForm"><input id="wText" maxlength="500" placeholder="Whisper to ' + esc((cur2 || { name: wOpenWith }).name) + '" autocomplete="off"><button>Send</button></form>' : '<div class="wnote">Pick a conversation, or start one above.</div>') + '</div></div>');
+  const box = $('wMsgs'); if (box) box.scrollTop = box.scrollHeight;
+}
+async function loadWhispers() { const l = await get('whispers').catch(() => null); if (Array.isArray(l)) { wList = l; drawWsp(); } }
+async function openWhispers(login) {
+  const pop = $('wsp'); if (pop.classList.contains('on') && !login) { pop.classList.remove('on'); return; }
+  pop.classList.add('on'); if (login) wOpenWith = login; await loadWhispers(); if (!wOpenWith && wList[0]) wOpenWith = wList[0].login;
+  if (wOpenWith) { post('whisper/read', { login: wOpenWith }).catch(() => {}); const w = wList.find((x) => x.login === wOpenWith); if (w) w.unread = 0; setWBadge(wList.reduce((n, x) => n + x.unread, 0)); }
+  drawWsp(); const t = $('wText') || $('wTo'); if (t) t.focus();
+}
+$('whisperBtn').onclick = () => openWhispers();
+document.addEventListener('mousedown', (e) => { if (!e.target.closest('#wsp, #whisperBtn')) $('wsp').classList.remove('on'); });
+$('wsp').onclick = async (e) => {
+  if (e.target.id === 'wX') return $('wsp').classList.remove('on');
+  const row = e.target.closest('[data-w]'); if (row) return openWhispers(row.dataset.w);
+  if (e.target.id === 'wGo') { const v = $('wTo').value.trim().replace(/^@/, '').toLowerCase(); if (/^[a-z0-9_]{3,25}$/.test(v)) { wOpenWith = v; drawWsp(); const t = $('wText'); if (t) t.focus(); } }
+};
+$('wsp').addEventListener('submit', async (e) => {
+  e.preventDefault(); const t = $('wText'), text = t.value.trim(); if (!text || !wOpenWith) return; t.disabled = true;
+  const r = await post('whisper/send', { login: wOpenWith, text }).catch(() => ({ error: 'Could not reach the app' })); if (r.error) { t.disabled = false; return toast(r.error); }
+  await loadWhispers(); const t2 = $('wText'); if (t2) t2.focus();
+});
+function drawPts() {   // the points and bits buttons next to the chat box show what Twitch's own page shows for the open channel
+  const p = pointsNow[cur], on = !!(cfgs().channelPoints && p && window.imcWindow && window.imcWindow.pointsCmd);
+  $('ptsBtn').style.display = on && p.balance ? '' : 'none'; $('bitsBtn').style.display = on && p.bits !== undefined && p.bits !== '' ? '' : 'none';
+  if (on) { $('ptsBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>' + esc(p.balance || ''); $('bitsBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l9 8-9 12L3 10z"/></svg>' + esc(p.bits || '0'); }
+}
+// IMC-Chat's own rewards list, read from Twitch's page by the reader and redeemed only after you confirm here
+const pnum = (t) => { const m = /^([\d.,]+)\s*([KMB]?)$/i.exec(String(t || '').trim()); return m ? parseFloat(m[1].replace(/,/g, '')) * ({ K: 1e3, M: 1e6, B: 1e9 }[m[2].toUpperCase()] || 1) : NaN; };
+let ptsKind = '', ptsData = null;
+const closePtsPop = () => { const p = $('ptsPop'); if (p.classList.contains('on')) { p.classList.remove('on'); if (window.imcWindow && window.imcWindow.pointsCmd && cur) window.imcWindow.pointsCmd(cur, 'close').catch(() => {}); } };
+const ptsHead = (title, bal) => '<div class="ph"><b>' + esc(title) + '</b><span class="bal">' + esc(bal || '') + '</span><span class="x" id="ptsX">&#10005;</span></div>';
+function drawPtsList() {
+  const d = ptsData, pop = $('ptsPop'), pts = pnum(d.balance);
+  if (ptsKind === 'points') pop.innerHTML = ptsHead('REWARDS', d.balance ? d.balance + ' points' : '') + '<div class="pb">' + (d.rewards.length ? d.rewards.map((r) => { const can = !r.disabled && !(pnum(r.cost) > pts); return '<div class="pr' + (can ? '' : ' off') + '"><span class="n">' + esc(r.name) + '</span><span class="c">' + esc(r.cost) + '</span>' + (can ? '<button data-i="' + r.i + '">Redeem</button>' : '') + '</div>'; }).join('') : '<div class="pm">This channel has no rewards.</div>') + '</div>';
+  else pop.innerHTML = ptsHead('POWER-UPS', (d.bits || '0') + ' bits') + '<div class="pb">' + (d.powers.length ? d.powers.map((r) => '<div class="pr"><span class="n">' + esc(r.name) + '</span><span class="c">' + esc(r.cost) + ' bits</span></div>').join('') + '<div class="pm">Power-ups are used on Twitch.</div>' : '<div class="pm">This channel has no power-ups.</div>') + '</div><div class="cf"><button id="ptsBuy">Buy bits</button></div>';
+}
+async function openPtsPop(kind) {
+  const pop = $('ptsPop'); if (pop.classList.contains('on') && ptsKind === kind) return closePtsPop();
+  ptsKind = kind; pop.classList.add('on'); pop.innerHTML = ptsHead(kind === 'bits' ? 'POWER-UPS' : 'REWARDS', '') + '<div class="pm">Loading...</div>';
+  const r = await window.imcWindow.pointsCmd(cur, 'list').catch(() => ({ error: 'Could not reach the app' }));
+  if (!pop.classList.contains('on') || ptsKind !== kind) return; if (r.error) { pop.innerHTML = ptsHead('REWARDS', '') + '<div class="pm">' + esc(r.error) + '</div>'; return; }
+  ptsData = r; drawPtsList();
+}
+$('ptsPop').onclick = async (e) => {
+  if (e.target.id === 'ptsX') return closePtsPop();
+  const b = e.target.closest('button'); if (!b || !ptsData) return; const pop = $('ptsPop');
+  if (b.dataset.i !== undefined) {   // Redeem on a row: find out what Twitch asks for, then ask you
+    const r = ptsData.rewards[Number(b.dataset.i)]; pop.innerHTML = ptsHead('REWARDS', '') + '<div class="pm">Opening ' + esc(r.name) + '...</div>';
+    const d = await window.imcWindow.pointsCmd(cur, 'select', b.dataset.i).catch(() => ({ error: 'Could not reach the app' }));
+    if (d.viaChat) { await window.imcWindow.pointsCmd(cur, 'close').catch(() => {}); pop.innerHTML = ptsHead('REWARDS', '') + '<div class="cf"><div><b>' + esc(r.name) + '</b> is sent with a message, typed in Twitch\'s own chat box.</div><div class="bt"><button id="ptsOpenChat">Open Twitch chat</button><button class="ghost" id="ptsNo">Back</button></div></div>'; return; }
+    if (d.error || !d.canRedeem) { drawPtsList(); return toast(d.error || 'Twitch will not let you redeem this right now'); }
+    pop.innerHTML = ptsHead('REWARDS', '') + '<div class="cf"><div>Redeem <b>' + esc(r.name) + '</b> for <b>' + esc(r.cost) + '</b> channel points?</div>' + (d.needsInput ? '<input id="ptsMsg" maxlength="500" placeholder="' + esc(d.inputLabel || 'Your message') + '">' : '') + '<div class="bt"><button id="ptsOk">Redeem</button><button class="ghost" id="ptsNo">Cancel</button></div></div>';
+    if ($('ptsMsg')) $('ptsMsg').focus(); return;
+  }
+  if (b.id === 'ptsOpenChat') { window.open('https://www.twitch.tv/popout/' + encodeURIComponent(cur) + '/chat', '_blank'); return; }   // your default browser, where you are already logged in
+  if (b.id === 'ptsBuy') { window.open('https://www.twitch.tv/bits', '_blank'); return; }
+  if (b.id === 'ptsNo') { await window.imcWindow.pointsCmd(cur, 'close').catch(() => {}); return openPtsPopAgain(); }
+  if (b.id === 'ptsOk') { b.disabled = true; const d = await window.imcWindow.pointsCmd(cur, 'redeem', $('ptsMsg') ? $('ptsMsg').value : '').catch(() => ({ error: 'Could not reach the app' })); toast(d.error || 'Redeemed' + (d.balance ? ' (' + d.balance + ' left)' : ''), !d.error); return openPtsPopAgain(); }
+};
+function openPtsPopAgain() { $('ptsPop').classList.remove('on'); openPtsPop(ptsKind); }
+function drawChatIn() {   // "chatting in <channel>" in the title bar, following the open tab
+  const c = chan(cur), el = $('chatIn'); el.innerHTML = c ? 'chatting in <b>' + esc(c.name) + '</b>' : ''; document.title = c ? 'IMC-Chat - chatting in ' + c.name : 'IMC-Chat';
+}
 const act = {};   // channel -> when recent messages arrived, for the little activity graph on each tab
 function spark(c) {
   const a = act[c] = (act[c] || []).filter((t) => Date.now() - t < 300000), n = Date.now(), B = 20, b = new Array(B).fill(0);
@@ -281,11 +395,12 @@ function drawSparks() { document.querySelectorAll('.tab .spark').forEach((el) =>
 let folSet = new Set();   // the channels you follow: their names get a star in chat
 async function loadFollowed() { const r = await get('followed').catch(() => null); if (r && Array.isArray(r.list)) folSet = new Set(r.list.map((f) => f.login)); }
 const chan = (l) => (S ? S.channels.find((c) => c.login === l) : null);
+const tabLines = (c) => [c.name].concat(c.live ? [c.live.title || '', c.live.game || '', Number(c.live.viewers || 0).toLocaleString() + ' viewers'] : ['offline']).filter(Boolean);   // what the hover box shows while the list is collapsed
 function drawTabs() {
   const liveOnly = cfgs().liveOnly === true; $('liveOnly').checked = liveOnly;   // the open channel stays visible even when offline
-  const tabs = S.channels.filter((c) => !liveOnly || c.live || c.login === cur).map((c) => '<div class="tab' + (c.login === cur ? ' on' : '') + (c.live ? ' live' : ' off') + (unreadN[c.login] ? ' new' : '') + (ments[c.login] ? ' ment' : '') + '" draggable="true" data-c="' + esc(c.login) + '">' + '<span class="avw">' + (safe(c.image) ? '<img class="av" src="' + safe(c.image) + '" alt="">' : '<span class="av"></span>') + '<span class="dot">' + (unreadN[c.login] > 99 ? '99+' : unreadN[c.login] || '') + '</span></span><span class="nm"' + (c.live ? ' data-tip="' + esc('LIVE \u00b7 ' + c.live.viewers.toLocaleString() + ' viewers' + (c.live.game ? ' \u00b7 ' + c.live.game : '') + (c.live.title ? ' - ' + c.live.title : '')) + '"' : '') + '>' + esc(c.name) + '</span>' + (SETWIN ? '' : '<svg class="spark" viewBox="0 0 36 12" data-tip="Chat activity, last 5 minutes"></svg>') + (c.mod ? '<span class="sw" data-tip="You are a moderator here">' + svg('sword') + '</span>' : '') + '<span class="pw" data-pop="' + esc(c.login) + '" data-tip="' + esc('Watch in ' + watchName()) + '">' + svg('play') + '</span><span class="x" data-x="' + esc(c.login) + '">&#10005;</span></div>').join('');
+  const tabs = S.channels.filter((c) => !liveOnly || c.live || c.login === cur).map((c) => '<div data-tl="' + esc(tabLines(c).join('\n')) + '" class="tab' + (c.login === cur ? ' on' : '') + (c.live ? ' live' : ' off') + (unreadN[c.login] ? ' new' : '') + (ments[c.login] ? ' ment' : '') + '" draggable="true" data-c="' + esc(c.login) + '">' + '<span class="avw">' + (safe(c.image) ? '<img class="av" src="' + safe(c.image) + '" alt="">' : '<span class="av"></span>') + '<span class="dot">' + (unreadN[c.login] > 99 ? '99+' : unreadN[c.login] || '') + '</span></span><span class="nm"' + (c.live ? ' data-tip="' + esc('LIVE \u00b7 ' + c.live.viewers.toLocaleString() + ' viewers' + (c.live.game ? ' \u00b7 ' + c.live.game : '') + (c.live.title ? ' - ' + c.live.title : '')) + '"' : '') + '>' + esc(c.name) + '</span>' + (SETWIN ? '' : '<svg class="spark" viewBox="0 0 36 12" data-tip="Chat activity, last 5 minutes"></svg>') + (c.mod ? '<span class="sw" data-tip="You are a moderator here">' + svg('sword') + '</span>' : '') + '<span class="pw" data-pop="' + esc(c.login) + '" data-tip="' + esc('Watch in ' + watchName()) + '">' + svg('play') + '</span><span class="x" data-x="' + esc(c.login) + '">&#10005;</span></div>').join('');
   $('tablist').innerHTML = tabs;   // the join box is not part of this list, so it keeps its focus while chat moves
-  drawSparks(); const has = !!cur; $('empty').style.display = has ? 'none' : ''; $('logwrap').style.display = has ? 'flex' : 'none'; $('bar').style.display = has ? 'flex' : 'none'; $('msg').placeholder = has ? 'Send a message to ' + cur : '';
+  drawSparks(); drawPts(); drawSub(); drawChatIn(); const has = !!cur; $('empty').style.display = has ? 'none' : ''; $('logwrap').style.display = has ? 'flex' : 'none'; $('bar').style.display = has ? 'flex' : 'none'; $('msg').placeholder = has ? 'Send a message to ' + cur : '';
 }
 
 // ---------------------------------------------------------------- mention alert: a two-note chime made in the browser (no sound file)
@@ -314,14 +429,19 @@ function textWithEmotes(t, ch) {
 const norm = (x) => ' ' + String(x).toLowerCase().replace(/[^\p{L}\p{N}_']+/gu, ' ').trim() + ' ';
 const hasWord = (text, list) => { const t = norm(text); return (list || []).some((w) => w && t.includes(norm(w))); };
 const cfgs = () => (S && S.settings) || {};
-const muted = (m) => !m.event && ((cfgs().mutedUsers || []).includes(m.login) || hasWord(m.text, cfgs().mutedWords));
+// chat events you can hide: each setting covers the notice types listed
+const EVGROUPS = [['subs', 'subscriptions and resubs', ['sub', 'resub', 'gift_paid_upgrade', 'prime_paid_upgrade']], ['gifts', 'gift subs', ['sub_gift', 'community_sub_gift']], ['forward', 'paying it forward', ['pay_it_forward']], ['raids', 'raids', ['raid', 'unraid']],
+  ['announce', 'announcements', ['announcement']], ['bitsbadge', 'bits badge tiers', ['bits_badge_tier']], ['charity', 'charity donations', ['charity_donation']], ['sharedsubs', 'shared chat subs', ['shared_chat_sub']],
+  ['redeem', 'reward redemptions', ['redeem']], ['hype', 'hype trains', ['hype_train']], ['poll', 'polls', ['poll']], ['prediction', 'predictions', ['prediction']], ['ads', 'ad breaks', ['ad_break']]];
+const evHidden = (m) => { if (!m.event) return false; const h = cfgs().hiddenEvents || []; return EVGROUPS.some(([id, , types]) => h.includes(id) && types.includes(m.event)); };
+const muted = (m) => evHidden(m) || !m.event && ((cfgs().mutedUsers || []).includes(m.login) || hasWord(m.text, cfgs().mutedWords));
 const quiet = (ch) => (cfgs().mutedAlerts || []).includes(ch);
 let findQ = '', behind = 0;
 const matches = (m) => !findQ || ((m.event ? (m.system || '') + ' ' : '') + m.name + ' ' + (m.text || '')).toLowerCase().includes(findQ);
 function frag(f, ch) {
   if (f.gif) return '<img class="gif" loading="lazy" src="' + safe(f.gif.url) + '" alt="GIF">';
   if (f.type === 'emote') return '<img class="e" alt="' + esc(f.text) + '" data-tip="' + esc(f.text) + '" data-img="https://static-cdn.jtvnw.net/emoticons/v2/' + encodeURIComponent(f.id) + '/default/dark/3.0" src="https://static-cdn.jtvnw.net/emoticons/v2/' + encodeURIComponent(f.id) + '/default/dark/2.0">';
-  if (f.type === 'cheermote') return '<b style="color:var(--accent)">' + esc(f.text) + '</b>';
+  if (f.type === 'cheermote') { const t = ((cheerC[ch] || {})[String(f.prefix || '').toLowerCase()] || []).filter((x) => x.min <= (f.tier ? Number(f.tier) : 1e9)).pop() || ((cheerC[ch] || {})[String(f.prefix || '').toLowerCase()] || [])[0]; return t && safe(t.url) ? '<img class="e cm" alt="' + esc(f.text) + '" data-tip="' + esc(f.text) + '" src="' + safe(t.url) + '"><b class="cmb" style="color:' + esc(t.color || 'var(--accent)') + '">' + esc(f.bits || '') + '</b>' : '<b style="color:var(--accent)">' + esc(f.text) + '</b>'; }
   if (f.type === 'mention') return '<b style="color:var(--accent2)">' + esc(f.text) + '</b>';
   return textWithEmotes(f.text, ch);
 }
@@ -402,10 +522,18 @@ async function loadEmotes(c) {
   const r = await get('emotes?channel=' + encodeURIComponent(c)).catch(() => []); emoList[c] = Array.isArray(r) ? r : [];
   const M = {}; for (const e of emoList[c]) if ('7bf'.includes(e.g)) M[e.n] = e.u; emoMap[c] = M; delete emoAll[c]; if (c === cur) { drawDraft(); render(); if ($('emo').style.display === 'flex') drawEmo(); }
 }
+const cheerC = {};   // channel -> cheermote prefix -> tiers with their pictures
+async function loadCheer(c) { if (c && !cheerC[c]) { cheerC[c] = {}; cheerC[c] = await get('cheermotes?channel=' + encodeURIComponent(c)).catch(() => ({})); if (c === cur) render(); } }
 async function loadBadges(c) { if (c && !badgeUrls[c]) { badgeUrls[c] = {}; badgeUrls[c] = await get('badges?channel=' + encodeURIComponent(c)).catch(() => ({})); if (c === cur) render(); } }
+let viewerArmed = false;   // not for the channel the app restores when it starts
+function autoViewer(c) {   // "Open Viewer on Chat Open": opening a live channel's chat opens the viewer, or points the open one at it
+  if (!viewerArmed || !cfgs().openViewer || POP || SETWIN || !window.imcWindow) return; const ch = chan(c); if (!ch || !ch.live) return;
+  if ((cfgs().videoSource || 'vlc') === 'twitch') { if (window.imcWindow.twitchPlayer) window.imcWindow.twitchPlayer(c, { reuse: true }).catch(() => {}); }
+  else if ((cfgs().playerStyle || 'own') === 'own' && playerKind === 'vlc' && window.imcWindow.watch) window.imcWindow.watch(c, { playerPath: cfgs().playerPath || '', ads: cfgs().ads || 'skip', reuse: true }).catch(() => {});
+}
 async function openTab(c) {
-  cur = c; unreadN[c] = 0; ments[c] = false; behind = 0; $('jump').style.display = 'none'; closeFind(); replyTo = null; $('reply').style.display = 'none'; if (!POP && S.settings.active !== c) save({ active: c }); loadBadges(c); loadEmotes(c); hideEmo(); drawDraft();
-  if (c && !msgs[c]) { msgs[c] = []; const h = await get('history?channel=' + encodeURIComponent(c)); const have = new Set(msgs[c].map((x) => x.id)); msgs[c] = h.filter((x) => !have.has(x.id)).concat(msgs[c]); } drawTabs(); render(); drawModbar(true);
+  closePtsPop(); cur = c; unreadN[c] = 0; ments[c] = false; behind = 0; $('jump').style.display = 'none'; closeFind(); replyTo = null; $('reply').style.display = 'none'; if (!POP && S.settings.active !== c) save({ active: c }); loadBadges(c); loadCheer(c); loadEmotes(c); hideEmo(); drawDraft(); autoViewer(c);
+  if (c && !msgs[c]) { msgs[c] = []; const h = await get('history?channel=' + encodeURIComponent(c)); const have = new Set(msgs[c].map((x) => x.id)); msgs[c] = h.filter((x) => !have.has(x.id)).concat(msgs[c]); } drawTabs(); render(); drawModbar(true); viewerArmed = true;
 }
 
 // ---------------------------------------------------------------- moderator tools
@@ -441,12 +569,15 @@ async function showCard(el) {
 }
 const hideCard = () => { cardFor = ''; card.style.display = 'none'; };
 document.addEventListener('mouseover', (e) => {
-  const n = e.target.closest('[data-user]'), t = e.target.closest('[data-tip]');
+  const n = e.target.closest('[data-user]'), t = e.target.closest('[data-tip]'), tl = document.body.classList.contains('railmin') ? e.target.closest('.tab[data-tl]') : null;
   if (n) { clearTimeout(cardT); cardT = setTimeout(() => showCard(n), 350); return; }
+  if (tl) {   // collapsed list: the channel's name, title, category and viewers beside the avatar
+    clearTimeout(tipT); tipT = setTimeout(() => { const L = tl.dataset.tl.split('\n'); tip.style.textAlign = 'left'; tip.innerHTML = L.map((x, i) => (i === 0 ? '<b>' + esc(x) + '</b>' : '<div>' + esc(x) + '</div>')).join(''); const r = tl.getBoundingClientRect(); place(tip, r.right + 8, r.top); }, 120); return;
+  }
   if (t && !t.closest('#card')) { clearTimeout(tipT); tipT = setTimeout(() => { tip.innerHTML = '<b>' + esc(t.dataset.tip) + '</b>' + (t.dataset.img ? '<img src="' + esc(t.dataset.img) + '" alt="">' : ''); const r = t.getBoundingClientRect(); place(tip, r.left + r.width / 2 - 40, r.bottom + 8); if (r.bottom + tip.offsetHeight + 8 > innerHeight) tip.style.top = r.top - tip.offsetHeight - 8 + 'px'; }, 120); }
 });
 document.addEventListener('mouseout', (e) => {
-  if (e.target.closest('[data-tip]')) { clearTimeout(tipT); tip.style.display = 'none'; }
+  if (e.target.closest('[data-tip]') || (document.body.classList.contains('railmin') && e.target.closest('.tab[data-tl]'))) { clearTimeout(tipT); tip.style.display = 'none'; tip.style.textAlign = ''; }
   if (e.target.closest('[data-user]')) { clearTimeout(cardT); cardT = setTimeout(() => { if (!card.matches(':hover')) hideCard(); }, 300); }
 });
 card.onmouseleave = () => { clearTimeout(cardT); cardT = setTimeout(hideCard, 250); };
@@ -664,9 +795,10 @@ $('importFile').onchange = async (e) => {
   const r = await post('import', d); if (r.error) return toast(r.error); drawStatus(r); toast('Imported: ' + r.channels.length + ' channels and your settings', true);
 };
 $('compact').onchange = (e) => { save({ compact: e.target.checked }); const L = $('log'); L.scrollTop = L.scrollHeight; };
-$('showActivity').onchange = (e) => save({ showActivity: e.target.checked }); $('showTime').onchange = (e) => save({ showTime: e.target.checked }); $('altRows').onchange = (e) => save({ altRows: e.target.checked });
+$('openViewer').onchange = (e) => save({ openViewer: e.target.checked }); $('channelPoints').onchange = (e) => { save({ channelPoints: e.target.checked }); drawPts(); }; $('subBtn').onclick = () => { if (cur) window.open('https://www.twitch.tv/subs/' + encodeURIComponent(cur), '_blank'); }; $('ptsBtn').onclick = () => openPtsPop('points'); $('bitsBtn').onclick = () => openPtsPop('bits');
+document.addEventListener('mousedown', (e) => { if (!e.target.closest('#ptsPop, #ptsBtn, #bitsBtn')) closePtsPop(); }); $('showActivity').onchange = (e) => save({ showActivity: e.target.checked }); $('showTime').onchange = (e) => save({ showTime: e.target.checked }); $('altRows').onchange = (e) => save({ altRows: e.target.checked });
 // the settings page: a rail of categories on the left, each holding its own sections
-const SETCATS = [['Appearance', ['FONT', 'THEME', 'CHANNEL TABS']], ['Chat', ['CHAT', 'HIGHLIGHTS AND MUTES', 'FOLLOWED CHANNELS']], ['Video', ['VIDEO PLAYER', "TWITCH'S OWN PLAYER"]], ['Account', ['ACCOUNT', 'UPDATES', 'BACKUP']]];
+const SETCATS = [['Appearance', ['FONT', 'THEME', 'CHANNEL TABS']], ['Chat', ['CHAT', 'HIGHLIGHTS AND MUTES', 'FOLLOWED CHANNELS']], ['Video', ['VIDEO PLAYER', "TWITCH'S OWN PLAYER"]], ['Account', ['ACCOUNT', 'UPDATES', 'BACKUP']], ['About', ['ABOUT']]];
 let setCatNow = 0;
 function setCat(i) {
   setCatNow = i; document.querySelectorAll('#settings .spane > .sec').forEach((sec) => sec.classList.toggle('cat-off', Number(sec.dataset.cat) !== i));
@@ -740,13 +872,20 @@ document.addEventListener('contextmenu', (e) => {
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (SETWIN && !document.querySelector('#fol[style*=block]')) return window.close(); folClose(); hideCtx(); $('settings').style.display = 'none'; hideCard(); hideEmo(); closeFind(); } });
 const es = new EventSource('/events');
-playerInfo(); get('health').then((h) => { if (h.version) $('ver').textContent = 'v' + h.version; }).catch(() => {});
+playerInfo(); get('health').then((h) => { if (h.version) { $('ver').textContent = 'v' + h.version; $('aboutVer').textContent = 'version ' + h.version; } }).catch(() => {});
 es.addEventListener('wentlive', (e) => { if (POP || SETWIN) return; const d = JSON.parse(e.data); liveChime(); toast(d.name + ' went live' + (d.viewers ? ' (' + d.viewers.toLocaleString() + ' watching)' : '') + (d.added ? ' and was added' : ''), true); if (d.added && !cur) openTab(d.login); });
 es.onopen = () => { serverDown = false; drawConn(); }; es.onerror = () => { serverDown = true; drawConn(); };
 es.addEventListener('status', (e) => drawStatus(JSON.parse(e.data)));
 es.addEventListener('backfill', async (e) => {   // older messages arrived for a channel
   const c = JSON.parse(e.data).channel; if (!msgs[c]) return; const h = await get('history?channel=' + encodeURIComponent(c)), have = new Set(msgs[c].map((x) => x.id));
   msgs[c] = h.filter((x) => !have.has(x.id)).concat(msgs[c]).sort((a, b) => a.ts - b.ts); if (c === cur) render();
+});
+es.addEventListener('points', (e) => { const d = JSON.parse(e.data); pointsNow[d.channel] = { balance: d.balance, bits: d.bits }; if (d.channel === cur) drawPts(); if (d.claimed && !SETWIN) toast('Claimed the bonus in ' + ((chan(d.channel) || {}).name || d.channel) + (d.balance ? ' (' + d.balance + ')' : ''), true); });
+es.addEventListener('whisper', (e) => {
+  const d = JSON.parse(e.data); const open = $('wsp').classList.contains('on') && wOpenWith === d.login;
+  if (open && !d.msg.mine) { post('whisper/read', { login: d.login }).catch(() => {}); }
+  setWBadge(open ? 0 : d.unread); loadWhispers();
+  if (!d.msg.mine && !open && !POP && !SETWIN) { chime(); toast('Whisper from ' + d.name + ': ' + String(d.msg.text).slice(0, 80), true); }
 });
 es.addEventListener('chat', (e) => { if (!SETWIN) addMsg(JSON.parse(e.data)); });
 es.addEventListener('chatmod', (e) => { const m = JSON.parse(e.data), a = msgs[m.channel] || []; if (m.type === 'clear') msgs[m.channel] = []; else for (const x of a) if (m.type === 'delete' ? x.id === m.id : x.uid === m.uid) x.gone = true; if (m.channel === cur) render(); });
