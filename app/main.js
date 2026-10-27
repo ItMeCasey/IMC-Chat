@@ -4,6 +4,7 @@ const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, session, sc
 const fs = require('node:fs'), path = require('node:path');
 const createSupervisor = require('./supervisor.js');
 const createVlcWindows = require('./vlcwindow.js');
+const { channelFromUrl, wantedPointsChannels, LOGIN } = require('./points-wanted.js');
 
 const _openExternal = shell.openExternal.bind(shell);
 shell.openExternal = (u, o) => { try { const x = new URL(u); log('opened in the browser:', x.hostname + x.pathname.slice(0, 60)); } catch (e) { log('opened in the browser: ?'); } return _openExternal(u, o); };
@@ -20,7 +21,7 @@ const url = () => 'http://localhost:' + PORT + '/', icon = (n) => nativeImage.cr
 function startServer() {
   fs.mkdirSync(DATA, { recursive: true });
   sup = createSupervisor({ command: process.execPath, args: [path.join(SERVER_DIR, 'server.js')], cwd: SERVER_DIR, port: PORT, log,
-    env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: '1', IMC_VERSION: app.getVersion(), IMC_DATA: DATA, IMC_PORT: String(PORT) }),
+    env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: '1', IMC_VERSION: app.getVersion(), IMC_DATA: DATA, IMC_PORT: String(PORT), IMC_PARENT_PID: String(process.pid) }),
     onOutput: (t) => { try { fs.appendFileSync(path.join(DATA, 'server.log'), t); } catch (e) { /* ignore */ } },
     onHealth: (h) => { light = h ? h.light : 'red'; refreshTray(); }, onState: () => refreshTray() });
   sup.start();
@@ -31,7 +32,7 @@ function openWindow() {
   if (win) { if (win.isMinimized()) win.restore(); win.show(); return win.focus(); }
   const b = settings.window || {};
   const where = Number.isFinite(b.x) && Number.isFinite(b.y) && onScreen({ x: b.x, y: b.y, width: b.width || 1100, height: b.height || 760 }) ? { x: b.x, y: b.y } : {};   // where it was, unless that screen is gone
-  win = new BrowserWindow({ ...where, width: b.width || 1100, height: b.height || 760, minWidth: 700, minHeight: 480, backgroundColor: '#222A2A', show: false, icon: icon('icon.png'), autoHideMenuBar: true, titleBarStyle: 'hidden', titleBarOverlay: { color: '#1A2020', symbolColor: '#E2DAC2', height: 40 },
+  win = new BrowserWindow({ ...where, width: b.width || 1100, height: b.height || 760, minWidth: 380, minHeight: 360, backgroundColor: '#222A2A', show: false, icon: icon('icon.png'), autoHideMenuBar: true, titleBarStyle: 'hidden', titleBarOverlay: { color: '#1A2020', symbolColor: '#E2DAC2', height: 40 },
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true } });
   win.once('ready-to-show', () => win.show());
   let moveT = null; const saveWin = () => { if (!win || win.isDestroyed() || win.isMinimized() || win.isMaximized() || win.isFullScreen()) return; settings.window = win.getNormalBounds(); saveSettings(); };
@@ -54,6 +55,14 @@ function refreshTray() {
 ipcMain.on('overlay', (e, o) => {
   const hex = /^#[0-9a-fA-F]{6}$/; if (!win || !o || !hex.test(o.color) || !hex.test(o.symbolColor)) return;
   try { win.setTitleBarOverlay({ color: o.color, symbolColor: o.symbolColor, height: 40 }); } catch (err) { /* not supported */ }
+});
+// the memory IMC-Chat uses in all: every window and helper process of the app, plus the chat server running beside it
+ipcMain.handle('app:memory', async () => {
+  const mb = (kb) => Math.round(kb / 1024), parts = { windows: 0, graphics: 0, other: 0, server: 0 };
+  for (const m of app.getAppMetrics()) { const kb = (m.memory && (m.memory.privateBytes || m.memory.workingSetSize)) || 0; if (m.type === 'Tab' || m.type === 'Browser') parts.windows += kb; else if (m.type === 'GPU') parts.graphics += kb; else parts.other += kb; }
+  for (const k of ['windows', 'graphics', 'other']) parts[k] = mb(parts[k]);
+  try { const h = await (await fetch(url() + 'api/health')).json(); parts.server = Math.round((h.rss || 0) / 1048576); } catch (e) { /* the server is not answering */ }
+  return { total: parts.windows + parts.graphics + parts.other + parts.server, parts };
 });
 // where the player and the chat popouts were last put: restored next time, unless that spot is no longer on a screen
 const onScreen = (b) => !!b && screen.getAllDisplays().some((d) => { const a = d.workArea; return b.x < a.x + a.width - 50 && b.x + b.width > a.x + 50 && b.y < a.y + a.height - 50 && b.y + b.height > a.y + 50; });
@@ -113,8 +122,8 @@ const BAR = 40;
 let barLogo = '', barFont = '';
 const assetB64 = (rel) => { try { return fs.readFileSync(path.join(SERVER_DIR, 'public', rel)).toString('base64'); } catch (e) { return ''; } };
 async function chatTheme() {
-  const d = { '--panel': '#1A2020', '--text': '#E2DAC2', '--accent': '#4FB3BF', '--accent2': '#E8A33D', '--danger': '#D9482B' };
-  try { const v = JSON.parse(await win.webContents.executeJavaScript(`JSON.stringify(Object.fromEntries(['--panel','--text','--accent','--accent2','--danger'].map((n) => [n, getComputedStyle(document.documentElement).getPropertyValue(n).trim()])))`)); for (const k of Object.keys(d)) if (/^#[0-9a-fA-F]{6}$/.test(v[k] || '')) d[k] = v[k]; } catch (e) { /* the defaults */ }
+  const d = { '--panel': '#1A2020', '--text': '#E2DAC2', '--accent': '#4FB3BF', '--accent2': '#E8A33D', '--danger': '#D9482B', '--flare': 'block' };
+  try { const v = JSON.parse(await win.webContents.executeJavaScript(`JSON.stringify(Object.fromEntries(['--panel','--text','--accent','--accent2','--danger','--flare'].map((n) => [n, getComputedStyle(document.documentElement).getPropertyValue(n).trim()])))`)); for (const k of Object.keys(d)) if (/^#[0-9a-fA-F]{6}$/.test(v[k] || '')) d[k] = v[k]; if (v['--flare'] === 'none') d['--flare'] = 'none'; } catch (e) { /* the defaults */ }
   return d;
 }
 async function styleViewerBar(w, channel) {
@@ -123,18 +132,18 @@ async function styleViewerBar(w, channel) {
   const css = `@font-face { font-family: "IMC Sans"; font-weight: 400; src: url(data:font/ttf;base64,${barFont}) format("truetype"); }
     #imc-bar { position: fixed; top: 0; left: 0; right: 0; height: ${BAR}px; z-index: 2147483647; display: flex; align-items: center; gap: 12px; padding: 0 150px 0 18px; box-sizing: border-box; background: ${t['--panel']}; color: ${t['--text']}; -webkit-app-region: drag; user-select: none; font: 400 15px "IMC Sans", "Segoe UI", sans-serif; letter-spacing: 3px; white-space: nowrap; overflow: hidden; }
     #imc-bar img { width: 24px; height: 24px; flex: none; pointer-events: none; } #imc-bar b { font-weight: 400; color: ${t['--accent']}; }
-    #imc-bar span { flex: none; } #imc-game, #imc-title, #imc-viewers { font-size: 13px; letter-spacing: 1px; } #imc-game { color: ${t['--accent2']}; } #imc-game:not(:empty)::before { content: '\\2022'; color: ${t['--text']}; opacity: .5; margin-right: 12px; } #imc-title { flex: 1 1 auto !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; opacity: .75; } #imc-title:not(:empty)::before { content: '\\2022'; opacity: .5; margin-right: 12px; } #imc-viewers { color: ${t['--danger']}; }
-    #imc-bar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: linear-gradient(90deg, ${t['--accent']} 0 30%, ${t['--accent2']} 30% 55%, ${t['--danger']} 55% 75%, ${t['--accent2']} 75% 90%, ${t['--text']} 90%); }`;
+    #imc-bar span { flex: none; } #imc-game, #imc-title, #imc-viewers, #imc-up { font-size: 13px; letter-spacing: 1px; } #imc-game { color: ${t['--accent2']}; } #imc-game:not(:empty)::before { content: '\\2022'; color: ${t['--text']}; opacity: .5; margin-right: 12px; } #imc-title { flex: 1 1 auto !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; opacity: .75; } #imc-title:not(:empty)::before { content: '\\2022'; opacity: .5; margin-right: 12px; } #imc-viewers { color: ${t['--danger']}; } #imc-up { opacity: .75; } #imc-up:not(:empty)::before { content: '\\2022'; opacity: .5; margin-right: 12px; }
+    #imc-bar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; display: ${t['--flare']}; background: linear-gradient(90deg, ${t['--accent']} 0 30%, ${t['--accent2']} 30% 55%, ${t['--danger']} 55% 75%, ${t['--accent2']} 75% 90%, ${t['--text']} 90%); }`;
   if (w.__barCss) w.webContents.removeInsertedCSS(w.__barCss).catch(() => {}); w.__barCss = await w.webContents.insertCSS(css).catch(() => null);
-  w.webContents.executeJavaScript(`(() => { if (document.getElementById('imc-bar')) return; const b = document.createElement('div'); b.id = 'imc-bar'; b.innerHTML = '<img src="data:image/png;base64,${barLogo}" alt=""><span>' + ${JSON.stringify('#')} + '<b>' + ${JSON.stringify(channel)} + '</b></span><span id="imc-game"></span><span id="imc-title"></span><span id="imc-viewers"></span>'; document.documentElement.appendChild(b); })()`).catch(() => {});
+  w.webContents.executeJavaScript(`(() => { window.__imcUp = window.__imcUp || (() => { const e = document.getElementById('imc-up'); if (!e) return; const s = e.dataset.since; if (!s) { e.textContent = ''; return; } const t = Math.max(0, Math.floor((Date.now() - new Date(s).getTime()) / 1000)); e.textContent = 'live ' + Math.floor(t / 3600) + ':' + String(Math.floor(t % 3600 / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); }); if (!window.__imcUpT) window.__imcUpT = setInterval(() => { if (!document.hidden) window.__imcUp(); }, 1000); if (document.getElementById('imc-bar')) return; const b = document.createElement('div'); b.id = 'imc-bar'; b.innerHTML = '<img src="data:image/png;base64,${barLogo}" alt=""><span>' + ${JSON.stringify('#')} + '<b>' + ${JSON.stringify(channel)} + '</b></span><span id="imc-game"></span><span id="imc-title"></span><span id="imc-viewers"></span><span id="imc-up"></span>'; document.documentElement.appendChild(b); })()`).catch(() => {});
   viewerInfo(w, channel);
 }
 // the game, the stream title and the viewer count in the bar, from what the chat app already knows about the channel (refreshed every half minute)
 async function viewerInfo(w, channel) {
   if (w.isDestroyed()) return; let live = null;
   try { const st = await (await fetch(url() + 'api/status')).json(); const c = (st.channels || []).find((x) => x.login === channel); live = c && c.live; } catch (e) { /* keep what is shown */ }
-  const text = live ? { game: live.game || '', title: live.title || '', viewers: Number(live.viewers || 0).toLocaleString() + ' viewers' } : { game: '', title: 'offline', viewers: '' };
-  w.webContents.executeJavaScript(`(() => { const t = ${JSON.stringify(text)}; for (const k of ['game', 'title', 'viewers']) { const el = document.getElementById('imc-' + k); if (el) el.textContent = t[k]; } })()`).catch(() => {});
+  const text = live ? { game: live.game || '', title: live.title || '', viewers: Number(live.viewers || 0).toLocaleString() + ' viewers', since: live.since || '' } : { game: '', title: 'offline', viewers: '', since: '' };
+  w.webContents.executeJavaScript(`(() => { const t = ${JSON.stringify(text)}; for (const k of ['game', 'title', 'viewers']) { const el = document.getElementById('imc-' + k); if (el) el.textContent = t[k]; } const u = document.getElementById('imc-up'); if (u) { u.dataset.since = t.since; if (window.__imcUp) window.__imcUp(); } })()`).catch(() => {});
 }
 // like the VLC window: once the stream's picture size is known the window is fitted to it, and dragging an edge keeps its proportions
 function fitToVideo(w) {
@@ -197,13 +206,29 @@ ipcMain.handle('twitch:player', (e, login, opt) => {
 // Channel points: for every live channel (when the setting is on) a hidden window shows Twitch's own chat-only page in the app's logged-in Twitch session.
 // points-preload.js on that page reads the balance and presses "Claim Bonus"; the result goes to the local server, which shows it on the tab.
 const pointsWins = new Map();
+// Each hidden page costs 150-250 MB, so only channels that are open get one: the tab being looked at, a popout chat, a video window, a player window.
+async function openChannels() {
+  const open = new Set(), hidden = new Set(pointsWins.values());
+  for (const w of BrowserWindow.getAllWindows()) { if (w.isDestroyed() || hidden.has(w)) continue; const c = channelFromUrl(w.webContents.getURL()); if (c) open.add(c); }
+  if (vlcWindows) for (const login of vlcWindows.wins.keys()) if (LOGIN.test(login)) open.add(login);
+  if (win && !win.isDestroyed() && (win.isVisible() || win.isMinimized())) {   // a main window hidden in the tray is not being looked at
+    try { const c = String(await win.webContents.executeJavaScript('typeof cur === "string" ? cur : ""')).toLowerCase(); if (LOGIN.test(c)) open.add(c); } catch (e) { /* page still loading */ }
+  }
+  return open;
+}
+let pointsBusy = false;
 function pointsTick() {
-  fetch(url() + 'api/status').then((r) => r.json()).then((s) => {
-    const on = !!(s.settings && s.settings.channelPoints && s.auth && s.auth.status === 'ok'), want = new Set(on ? s.channels.filter((c) => c.live).slice(0, 10).map((c) => c.login) : []);
+  if (pointsBusy) return; pointsBusy = true;
+  fetch(url() + 'api/status').then((r) => r.json()).then(async (s) => {
+    const on = !!(s.settings && s.settings.channelPoints && s.auth && s.auth.status === 'ok'), open = on ? await openChannels() : new Set();
+    const want = new Set(on ? wantedPointsChannels(s.channels.filter((c) => c.live).map((c) => c.login), open, 10) : []);
     for (const [login, w] of Array.from(pointsWins)) if (!want.has(login) || w.isDestroyed()) { if (!w.isDestroyed()) w.destroy(); pointsWins.delete(login); }
     for (const login of want) if (!pointsWins.has(login)) openPointsWindow(login);
-  }).catch(() => {});
+  }).catch(() => {}).finally(() => { pointsBusy = false; });
 }
+// Moving to another tab starts (and stops) the right hidden pages within a couple of seconds instead of at the next 20 second round.
+let lastOpenKey = '';
+async function watchOpenChannels() { try { const key = Array.from(await openChannels()).sort().join(','); if (key !== lastOpenKey) { lastOpenKey = key; pointsTick(); } } catch (e) { /* ignore */ } }
 function openPointsWindow(login) {
   if (!/^[a-z0-9_]{3,25}$/.test(login)) return;
   const w = new BrowserWindow({ show: false, width: 420, height: 700, webPreferences: { partition: TWITCH_PARTITION, preload: path.join(__dirname, 'points-preload.js'), contextIsolation: true, sandbox: true, backgroundThrottling: false, additionalArguments: ['--imc-channel=' + login] } });
@@ -238,7 +263,7 @@ ipcMain.handle('player:watch', async (e, login, opt) => {
 ipcMain.on('flash', () => { if (win && !win.isFocused()) win.flashFrame(true); });   // a mention while the window is in the background: the taskbar button flashes
 app.on('second-instance', openWindow);
 app.whenReady().then(() => {
-  app.setAppUserModelId('com.itmecasey.imcchat'); tray = new Tray(icon('tray-grey.png').resize({ width: 24, height: 24 })); tray.on('click', openWindow); refreshTray(); startServer(); keepTwitchLogin(); pointsTimer = setInterval(pointsTick, 20000);
+  app.setAppUserModelId('com.itmecasey.imcchat'); tray = new Tray(icon('tray-grey.png').resize({ width: 24, height: 24 })); tray.on('click', openWindow); refreshTray(); startServer(); keepTwitchLogin(); pointsTimer = setInterval(pointsTick, 20000); setInterval(watchOpenChannels, 2000);
   if (!process.argv.includes('--hidden')) openWindow();
 });
 app.on('window-all-closed', () => { /* stay in the tray */ });

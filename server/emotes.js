@@ -18,7 +18,7 @@ module.exports = function createEmotes(ctx) {
     id = String(id || ''); const hit = cache.get(id); if (hit && now() - hit.at < 3600000) return hit.v;
     const glob = cache.get('global') && now() - cache.get('global').at < 3600000 ? cache.get('global').v : null;
     const [g7, gb, gf] = glob ? [] : await Promise.all([get('https://7tv.io/v3/emote-sets/global'), get('https://api.betterttv.net/3/cached/emotes/global'), get('https://api.frankerfacez.com/v1/set/global')]);
-    const base = glob || [].concat(seventv(g7, '7'), bttv(gb), ffz(gf && gf.sets));
+    const base = glob || [].concat(seventv(g7, '7'), bttv(gb), ffz(gf && gf.sets)).map((e) => Object.assign(e, { gl: 1 }));   // gl: from the global sets, not the channel's own
     if (!glob) cache.set('global', { at: now(), v: base });
     let mine = [];
     if (/^\d{1,20}$/.test(id)) {

@@ -3,6 +3,6 @@
   "private": true,
   "description": "Development tooling (the app is in app/)",
   "license": "GPL-3.0-or-later",
-  "scripts": { "lint": "eslint", "test": "node server/twitch-test.js && node server/emotes-test.js && node server/player-test.js && node app/hls-ads-test.js" },
+  "scripts": { "lint": "eslint", "test": "node server/twitch-test.js && node server/emotes-test.js && node server/extras-test.js && node server/player-test.js && node app/hls-ads-test.js && node app/points-wanted-test.js && node server/parent-watch-test.js" },
   "devDependencies": { "eslint": "^9.39.0" }
 }

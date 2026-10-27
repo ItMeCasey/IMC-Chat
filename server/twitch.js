@@ -13,12 +13,13 @@ const FOLLOW_SCOPE = 'user:read:follows', MAX_CHANNELS = 100, SUB_BUDGET = 300, 
 const EVENT_GROUPS = ['subs', 'gifts', 'forward', 'raids', 'announce', 'bitsbadge', 'charity', 'sharedsubs', 'redeem', 'hype', 'poll', 'prediction', 'ads'];   // the kinds of chat event that can be hidden (the page maps each to its notice types)
 const OWN_SCOPES = ['channel:read:redemptions', 'channel:read:hype_train', 'channel:read:polls', 'channel:read:predictions', 'channel:read:ads'];   // only the broadcaster can read these, so they only work in your own channel
 const CLIP_SCOPE = 'clips:edit';
+const FOLLOWERS_SCOPE = 'moderator:read:followers';   // when someone followed: Twitch only tells the broadcaster and the channel's moderators
 const SUB_SCOPE = 'user:read:subscriptions';   // to tell whether you are subscribed to a channel
 const WHISPER_SCOPES = ['user:read:whispers', 'user:manage:whispers'];   // to receive whispers and to answer them
-const SCOPES = CHAT_SCOPES.concat(MOD_SCOPES, [EMOTE_SCOPE, FOLLOW_SCOPE], OWN_SCOPES, [CLIP_SCOPE, SUB_SCOPE], WHISPER_SCOPES);
+const SCOPES = CHAT_SCOPES.concat(MOD_SCOPES, [EMOTE_SCOPE, FOLLOW_SCOPE], OWN_SCOPES, [CLIP_SCOPE, SUB_SCOPE, FOLLOWERS_SCOPE], WHISPER_SCOPES);
 const NOTICE_COLORS = ['primary', 'blue', 'green', 'orange', 'purple'];
 const DEFAULT_SETTINGS = { font: 'IMC Sans', size: 16, weight: 400, theme: 'forge', layout: 'horizontal', active: '', showTime: true, altRows: false, compact: true, mentionSound: true, mentionVolume: 60, mentionFlash: true, highlightWords: [], mutedUsers: [], mutedWords: [], mutedAlerts: [], recentHistory: false, favEmotes: [], emoteUse: {}, playerPath: '', playerPref: '', playerStyle: 'own', railWidth: 0, ads: 'skip', videoSource: 'vlc', followedOnlyLive: true, autoLive: false, liveSound: true };
-const FONTS = ['IMC Sans', 'IMC Serif', 'IMC Dyslexia', 'system'], THEMES = ['forge', 'midnight', 'ember', 'dusk', 'slate', 'moss', 'cream', 'paper', 'sky'];
+const FONTS = ['IMC Sans', 'IMC Serif', 'IMC Dyslexia', 'system'], THEMES = ['basic-dark', 'basic-light', 'forge', 'midnight', 'ember', 'dusk', 'slate', 'moss', 'cream', 'paper', 'sky'];
 
 /** one chat line as the recent-messages service keeps it (IRC), turned into the same message the live chat makes */
 function parseIrc(line) {
@@ -54,7 +55,7 @@ module.exports = function createTwitch(ctx) {
   const granted = () => (tokens && tokens.scopes) || [];
   const isMod = (c) => !!tokens && (c.id === tokens.user_id || mods.has(c.id));
   const status = () => ({ auth, login: tokens ? tokens.login : '', userId: tokens ? tokens.user_id : '', device: device && { code: device.user_code, url: device.verification_uri }, connected: ready,
-    channels: channels.map((c) => Object.assign({}, c, { mod: isMod(c), live: liveMap.get(c.id) || null, sub: subState.has(c.id) ? subState.get(c.id) : null })), needsSubs: !!tokens && !granted().includes(SUB_SCOPE), needsWhispers: !!tokens && WHISPER_SCOPES.some((s) => !granted().includes(s)), whisperUnread: whisperUnread(), settings, clientId: ctx.clientId, customClient: !!ctx.customClient, needsModScopes: !!tokens && MOD_SCOPES.concat([EMOTE_SCOPE]).some((s) => !granted().includes(s)), needsFollows: !!tokens && !granted().includes(FOLLOW_SCOPE), maxChannels: MAX_CHANNELS });
+    channels: channels.map((c) => Object.assign({}, c, { mod: isMod(c), live: liveMap.get(c.id) || null, sub: subState.has(c.id) ? subState.get(c.id) : null })), needsSubs: !!tokens && !granted().includes(SUB_SCOPE), needsWhispers: !!tokens && WHISPER_SCOPES.some((s) => !granted().includes(s)), whisperUnread: whisperUnread(), settings, clientId: ctx.clientId, customClient: !!ctx.customClient, needsModScopes: !!tokens && MOD_SCOPES.concat([EMOTE_SCOPE]).some((s) => !granted().includes(s)), needsFollows: !!tokens && !granted().includes(FOLLOW_SCOPE), needsFollowers: !!tokens && !granted().includes(FOLLOWERS_SCOPE) && channels.some(isMod), maxChannels: MAX_CHANNELS });
   const changed = () => emit('status', status());
 
   // ---------------------------------------------------------------- settings
@@ -79,7 +80,7 @@ module.exports = function createTwitch(ctx) {
     if (b.railWidth !== undefined && Number.isFinite(Number(b.railWidth))) { const w = Math.round(Number(b.railWidth)); settings.railWidth = w <= 0 ? 0 : Math.min(520, Math.max(120, w)); }   // the width of the channel list on the left; 0 = automatic
     if (['skip', 'show'].includes(b.ads)) settings.ads = b.ads;
     if (['vlc', 'twitch'].includes(b.videoSource)) settings.videoSource = b.videoSource;
-    for (const k of ['followedOnlyLive', 'autoLive', 'liveSound', 'liveOnly', 'railMin', 'showActivity', 'channelPoints', 'openViewer']) if (typeof b[k] === 'boolean') settings[k] = b[k];
+    for (const k of ['followedOnlyLive', 'autoLive', 'liveSound', 'liveOnly', 'railMin', 'showActivity', 'channelPoints', 'openViewer', 'hideBuy', 'taskbarFlash']) if (typeof b[k] === 'boolean') settings[k] = b[k];
     const turnedOn = typeof b.recentHistory === 'boolean' && b.recentHistory && !settings.recentHistory;
     if (typeof b.recentHistory === 'boolean') settings.recentHistory = b.recentHistory;
     const fav = list(b.favEmotes, 60, 40, (x) => x); if (fav) settings.favEmotes = fav;
@@ -184,6 +185,13 @@ module.exports = function createTwitch(ctx) {
     if (r.ok) cheerCache.set(key, { at: now(), v: out }); return out;
   }
   /** what the hover card shows about a person: picture, name, account age, bio */
+  /** when a user followed a channel: { followedAt } (null: not following), or { reason } when Twitch will not say */
+  async function followAge(channel, userId) {
+    const c = channels.find((x) => x.login === clean(channel)); if (!tokens || !c || !/^\d{1,20}$/.test(String(userId))) return { reason: 'none' };
+    if (!isMod(c)) return { reason: 'mod' }; if (!granted().includes(FOLLOWERS_SCOPE)) return { reason: 'scope' };
+    const r = await helix('GET', '/channels/followers?broadcaster_id=' + c.id + '&user_id=' + userId).catch(() => null); if (!r || !r.ok) return { reason: 'error' };
+    const d = (r.json.data || [])[0]; return { followedAt: d ? d.followed_at : null };
+  }
   async function userInfo(id) {
     id = String(id || ''); if (!/^\d{1,20}$/.test(id)) throw new Error('Unknown user');
     const hit = userCache.get(id); if (hit && now() - hit.at < 600000) return hit.v;
@@ -205,7 +213,9 @@ module.exports = function createTwitch(ctx) {
     const hit = emoteCache.get(c.id); if (hit && now() - hit.at < 600000) return hit.v;
     const [chan, glob, mine, third] = await Promise.all([pages('/chat/emotes?broadcaster_id=' + c.id).catch(() => []), pages('/chat/emotes/global?x=1'), granted().includes(EMOTE_SCOPE) ? pages('/chat/emotes/user?user_id=' + tokens.user_id + '&broadcaster_id=' + c.id) : Promise.resolve([]),
       ctx.thirdParty ? ctx.thirdParty(c.id).catch(() => []) : Promise.resolve([])]);
-    const out = [], seen = new Set(), add = (list, g, only) => { for (const e of list) if (e.name && img(e) && !seen.has(e.name) && (!only || only(e))) { seen.add(e.name); out.push({ n: e.name, u: img(e), g }); } };
+    const owners = {}, ids = Array.from(new Set(mine.map((e) => String(e.owner_id || '')).filter((x) => /^\d+$/.test(x) && x !== c.id))).slice(0, 300);   // who owns the emotes you have from other channels
+    for (let i = 0; i < ids.length; i += 100) { const r = await helix('GET', '/users?' + ids.slice(i, i + 100).map((x) => 'id=' + x).join('&')).catch(() => null); if (r && r.ok) for (const u of r.json.data || []) owners[u.id] = u.display_name || u.login; }
+    const out = [], seen = new Set(), add = (list, g, only) => { for (const e of list) if (e.name && img(e) && !seen.has(e.name) && (!only || only(e))) { seen.add(e.name); const row = { n: e.name, u: img(e), g }; if (g === 'm' && owners[e.owner_id]) row.o = owners[e.owner_id]; out.push(row); } };
     if (mine.length) add(mine, 'c', (e) => e.owner_id === c.id); else add(chan, 'c');   // with the emote permission only the ones you can use are listed
     add(glob, 'g'); add(mine, 'm'); for (const e of third) if (!seen.has(e.n)) { seen.add(e.n); out.push(e); }
     emoteCache.set(c.id, { at: now(), v: out }); return out;
@@ -225,13 +235,13 @@ module.exports = function createTwitch(ctx) {
     if (!tokens) return; const next = new Map(), liveNow = new Map();
     for (let i = 0; i < channels.length; i += 100) {
       const part = channels.slice(i, i + 100), r = await helix('GET', '/streams?first=100&' + part.map((c) => 'user_id=' + c.id).join('&')).catch(() => null); if (!r || !r.ok) return;
-      for (const s of r.json.data || []) { const info = { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140) }; next.set(s.user_id, info); liveNow.set(s.user_login, Object.assign({ id: s.user_id, name: s.user_name }, info)); }
+      for (const s of r.json.data || []) { const info = { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140), since: s.started_at || '' }; next.set(s.user_id, info); liveNow.set(s.user_login, Object.assign({ id: s.user_id, name: s.user_name }, info)); }
     }
     if (granted().includes(FOLLOW_SCOPE)) {   // the channels you follow that are live right now, joined or not
       let cursor = '';
       for (let i = 0; i < 10; i++) {
         const r = await helix('GET', '/streams/followed?user_id=' + tokens.user_id + '&first=100' + (cursor ? '&after=' + cursor : '')).catch(() => null); if (!r || !r.ok) break;
-        for (const s of r.json.data || []) { const info = { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140) }; liveNow.set(s.user_login, Object.assign({ id: s.user_id, name: s.user_name }, info)); if (channels.some((c) => c.id === s.user_id)) next.set(s.user_id, info); }
+        for (const s of r.json.data || []) { const info = { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140), since: s.started_at || '' }; liveNow.set(s.user_login, Object.assign({ id: s.user_id, name: s.user_name }, info)); if (channels.some((c) => c.id === s.user_id)) next.set(s.user_id, info); }
         cursor = r.json.pagination && r.json.pagination.cursor; if (!cursor) break;
       }
     }
@@ -274,7 +284,7 @@ module.exports = function createTwitch(ctx) {
     const live = new Map(); cursor = '';
     for (let i = 0; i < 10; i++) {
       const r = await helix('GET', '/streams/followed?user_id=' + tokens.user_id + '&first=100' + (cursor ? '&after=' + cursor : '')).catch(() => null); if (!r || !r.ok) break;
-      for (const s of r.json.data || []) live.set(s.user_login, { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140) }); cursor = r.json.pagination && r.json.pagination.cursor; if (!cursor) break;
+      for (const s of r.json.data || []) live.set(s.user_login, { viewers: s.viewer_count, game: s.game_name || '', title: String(s.title || '').slice(0, 140), since: s.started_at || '' }); cursor = r.json.pagination && r.json.pagination.cursor; if (!cursor) break;
     }
     const have = new Set(channels.map((c) => c.login));
     return all.map((f) => Object.assign({}, f, { live: live.get(f.login) || null, added: have.has(f.login) })).sort((a, b) => (b.live ? b.live.viewers + 1 : 0) - (a.live ? a.live.viewers + 1 : 0) || a.name.localeCompare(b.name));
@@ -472,5 +482,5 @@ module.exports = function createTwitch(ctx) {
     if (!r.ok || !d) throw new Error(r.status === 404 ? c.name + ' is not live' : (r.json && r.json.message) || 'Twitch could not make the clip');
     return { ok: true, url: 'https://clips.twitch.tv/' + encodeURIComponent(d.id), edit: d.edit_url };
   }
-  return { startLogin, logout, join, leave, move, send, mod, clip, clipInfo, connect: () => connect(), status, configure, badges, emotes, userInfo, loadMods, fillImages, cheermotes, whisperList, readWhispers, sendWhisper, exportData, importData, fillLive, backfill, addLogins, followed, history: (ch) => (history.get(clean(ch)) || []).filter((m) => !m.gone), onEvent, stop: () => { clearInterval(liveTimer); closeWs(); } };
+  return { startLogin, logout, join, leave, move, send, mod, clip, clipInfo, connect: () => connect(), status, configure, badges, emotes, userInfo, followAge, loadMods, fillImages, cheermotes, whisperList, readWhispers, sendWhisper, exportData, importData, fillLive, backfill, addLogins, followed, history: (ch) => (history.get(clean(ch)) || []).filter((m) => !m.gone), onEvent, stop: () => { clearInterval(liveTimer); closeWs(); } };
 };

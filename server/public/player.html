@@ -9,7 +9,7 @@
   body { display: flex; flex-direction: column; }
   /* the title strip: the window's own, in the chat's theme (the window buttons at the right are coloured to match) */
   header { flex: none; height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 0 0 16px; padding-right: calc(100vw - env(titlebar-area-width, calc(100vw - 138px))); background: var(--panel); position: relative; -webkit-app-region: drag; }
-  header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: linear-gradient(90deg,var(--accent) 0 30%,var(--accent2) 30% 55%,var(--danger) 55% 75%,var(--accent2) 75% 90%,var(--text) 90%); }
+  header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; display: var(--flare, block); background: linear-gradient(90deg,var(--accent) 0 30%,var(--accent2) 30% 55%,var(--danger) 55% 75%,var(--accent2) 75% 90%,var(--text) 90%); }
   body.full header { display: none; }
   #ch { font-family: "IMC Sans", sans-serif; font-weight: 400; letter-spacing: 3px; white-space: nowrap; } #info { color: var(--muted); font-size: .8em; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* shown only while the video is not: starting up, offline, or ended. The video and the controls are windows of their own above this one. */
@@ -33,6 +33,7 @@ if (P) P.on((d) => {
   $('t').textContent = d.ended ? d.ended.toUpperCase() : 'STARTING'; $('m').textContent = d.ended ? '' : 'Opening the stream...'; $('retry').style.display = d.ended ? '' : 'none';
 });
 // who is live, from the chat window's data
-let adLeft = 0, wasAd = false;
-const live = () => adLeft ? null : fetch('/api/status').then((r) => r.json()).then((s) => { const c = s.channels.find((x) => x.login === ch); $('info').textContent = c ? (c.live ? 'LIVE · ' + c.live.viewers.toLocaleString() + ' viewers' + (c.live.game ? ' · ' + c.live.game : '') + (c.live.title ? ' · ' + c.live.title : '') : 'offline') : ''; }).catch(() => {}); live(); setInterval(live, 60000);
+let adLeft = 0, wasAd = false; const up = (iso) => { const t = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000)); return Math.floor(t / 3600) + ':' + String(Math.floor(t % 3600 / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+let liveC = null; const showInfo = () => { if (adLeft) return; const c = liveC; $('info').textContent = c ? (c.live ? 'LIVE · ' + c.live.viewers.toLocaleString() + ' viewers' + (c.live.since ? ' · live ' + up(c.live.since) : '') + (c.live.game ? ' · ' + c.live.game : '') + (c.live.title ? ' · ' + c.live.title : '') : 'offline') : ''; };
+const live = () => adLeft ? null : fetch('/api/status').then((r) => r.json()).then((s) => { liveC = s.channels.find((x) => x.login === ch) || null; showInfo(); }).catch(() => {}); live(); setInterval(live, 60000); setInterval(() => { if (!document.hidden) showInfo(); }, 1000);   // the clock ticks here; the data is fetched once a minute
 </script></body></html>

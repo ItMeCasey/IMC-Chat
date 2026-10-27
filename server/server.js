@@ -6,6 +6,7 @@ const path = require('node:path');
 const createTwitch = require('./twitch.js');
 const player = require('./player.js')({});
 const thirdParty = require('./emotes.js')({ log: (...a) => console.log(...a) }).forChannel;
+const extras = require('./extras.js')({ log: (...a) => console.log(...a) });
 
 const DATA = process.env.IMC_DATA || path.join(__dirname, 'data'), PORT = Number(process.env.IMC_PORT) || 8430, STARTED = Date.now();
 fs.mkdirSync(DATA, { recursive: true });
@@ -48,7 +49,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' }); res.write('retry: 2000\n\n');
       clients.add(res); req.on('close', () => clients.delete(res)); return res.write('event: status\ndata: ' + JSON.stringify(twitch.status()) + '\n\n');
     }
-    if (p === '/api/health') return json(res, 200, { ok: true, version: VERSION, light: twitch.status().connected ? 'green' : 'amber', uptime: Math.round((Date.now() - STARTED) / 1000) });
+    if (p === '/api/health') return json(res, 200, { ok: true, rss: process.memoryUsage().rss, version: VERSION, light: twitch.status().connected ? 'green' : 'amber', uptime: Math.round((Date.now() - STARTED) / 1000) });
     if (p === '/api/status') return json(res, 200, twitch.status());
     if (p === '/api/whispers') return json(res, 200, twitch.whisperList());
     if (p === '/api/whisper/read') return json(res, 200, twitch.readWhispers((await readBody(req)).login));
@@ -69,6 +70,8 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, pointsNow);
     }
     if (p === '/api/update') return json(res, 200, await checkUpdate().catch((e) => ({ current: VERSION, error: 'Could not reach GitHub' })));
+    if (p === '/api/namefx') return json(res, 200, await extras.nameFx(new URL(req.url, 'http://localhost').searchParams.get('id')));
+    if (p === '/api/followage') { const q = new URL(req.url, 'http://localhost').searchParams; return json(res, 200, await twitch.followAge(q.get('channel'), q.get('id'))); }
     if (p === '/api/clipinfo') return json(res, 200, await twitch.clipInfo(new URL(req.url, 'http://localhost').searchParams.get('id')).catch((e) => ({ error: e.message })));
     if (p === '/api/history') return json(res, 200, twitch.history(new URL(req.url, 'http://localhost').searchParams.get('channel')));
     if (req.method === 'POST' && p.startsWith('/api/')) {
@@ -99,5 +102,7 @@ const server = http.createServer(async (req, res) => {
   } catch (e) { log('request failed:', e.message); if (!res.headersSent) json(res, 500, { error: e.message }); }
 });
 server.listen(PORT, '127.0.0.1', () => { log('IMC-Chat on http://localhost:' + PORT); twitch.connect(); });
+// Started by the desktop app: when that app is gone (crashed, hung and closed, ended in Task Manager) stop too, so no server is left holding the port.
+if (process.env.IMC_PARENT_PID) require('./parent-watch.js').watchParent(Number(process.env.IMC_PARENT_PID), () => { log('the app that started this server is gone; stopping'); process.exit(0); });
 process.on('uncaughtException', (e) => log('error:', e.stack || e.message));
 process.on('unhandledRejection', (e) => log('error:', e && e.stack || e));
