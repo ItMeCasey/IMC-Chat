@@ -1,7 +1,7 @@
 {
   "name": "imc-chat",
   "productName": "IMC-Chat",
-  "version": "2026.10.14",
+  "version": "2026.10.15",
   "description": "A Twitch chat client that joins any channel",
   "author": "ItMeCasey",
   "license": "GPL-3.0-or-later",
