@@ -31,6 +31,7 @@
       "hls-ads.js",
       "player-preload.js",
       "points-preload.js",
+      "points-wanted.js",
       "supervisor.js",
       "package.json",
       "build/*.png"
